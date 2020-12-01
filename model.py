@@ -3,87 +3,67 @@ import typing as tp
 import autograd.numpy as np
 from tqdm.auto import tqdm
 
-from .layer import BaseLayer, Dense
-from .functions import ReLU, Tanh, Sigmoid, Linear
-from .optimisers import BaseOptimizer
-from .utils import cast_to_same_shape
+from layer import BaseLayer, Dense, WeightsParser
+from functions import GaussianRBF, ReLU, Tanh, Sigmoid, Linear
+from optimisers import BaseOptimizer
+from utils import cast_to_same_shape
 
-class BaseNetwork():
-    def __init__(self, layers: tp.Union[None, tp.List[BaseLayer]]):
-        self._layers=layers
-    
-    def __call__(self, X: np.ndarray) -> np.ndarray:
-        out = X.copy()
-        for l in self.layers:
-            out = l.forward(out)
-        return out
-    
-    @property
-    def layers(self) -> tp.Union[None, tp.List[BaseLayer]]:
-        return self._layers
 
-    def add(self, layer: BaseLayer, idx: tp.Union[None, int] = None):
-        if idx is None:
-            self._layers.append(layer)
-        else:
-            self._layers.insert(idx, layer)
-
-class FeedForwardRegressor(BaseNetwork):
-    def __init__(self):
-        """
-        `Dummy` Multilayer Perceptron
-        """
-        super().__init__(layers=[])
-    
-    def compile(self, 
-                layer_sizes: tp.List[int],
-                input_size: int, 
-                output_size: int,
-                ):
-        """
-        Construct Feed-Forward Net
-        
-        Args:
-            layer_sizes (list(int)): hidden layer sizes
-            input_size (int): input dimension of first layer, i.e. your `X` variable
-            output_size (int): output dimension of last layer, i.e. your `Y` variable
-        """
-        self._layer_sizes = layer_sizes+[output_size]
-        for idx, (i_s, outp_s) in enumerate(zip(self._layer_sizes[:-1], self._layer_sizes[1:])):
-            self.add(Dense(input_size=i_s,
-                num_units=outp_s,
-                activation=ReLU,
-                regularization='l2',
-                lambda_reg=0.1,
-                number=idx+1))
-        self.add(Dense(input_size=input_size,
-            bias_initializer=np.ones,
-            num_units=self._layer_sizes[0], activation=ReLU, number=0), 0)
-
-    def eval(self, X: np.ndarray, y: np.ndarray) -> float:
-        """
-        Evaluate Network on batch
-        
-        Args:
-            X (ndarray): input batch
-            y (ndarray): desired output
-        Returns:
-            lossfn (float): loss function value
-        """
-        outp = self(X).ravel()
-        cast_to_same_shape(outp, y)
-        lossfn = self._loss(outp, y)
-        return lossfn
-
-    def fit(self, 
-                  loss: tp.Callable[..., tp.Any],
-                  optimiser: BaseOptimizer,
-                  train_sample: tp.Tuple[np.ndarray], 
-                  validation_sample: tp.Tuple[np.ndarray], 
-                  batch_size: int,
-                  iters: tp.Optional[int] = None,
-                  verbose: tp.Optional[bool] = None):
+class FFN(object):
+    def __init__(self, input_shape: tp.Tuple[int],
+                layer_specs: tp.List[BaseLayer],
+                loss: tp.Callable[..., np.ndarray],
+                **kwargs) -> None:
+        self.parser = WeightsParser()
+        self.regularization = kwargs.get('regularization', 'l2')
+        self.reg_coef = kwargs.get('reg_coef', 0)
+        self.layer_specs = layer_specs
+        cur_shape = input_shape
+        for layer in self.layer_specs:
+            N_weights, cur_shape = layer.build_weights_dict(cur_shape)
+            self.parser.add_weights(layer, (N_weights,))
         self._loss = loss
+        self.W_vect = 0.1*np.random.default_rng(72).normal(size=(self.parser.N,))
+    
+    def loss(self, 
+             W_vect: np.ndarray,  
+             X: np.ndarray,
+             y: np.ndarray):
+        if self.regularization == 'l2':
+            reg = np.power(np.linalg.norm(W_vect, 2), 2)
+        elif self.regularization == 'l1':
+            reg = np.linalg.norm(W_vect, 1)
+        else:
+            reg = 0.
+        return self._loss(self._predict(W_vect, X), y) + self.reg_coef*reg
+    
+    def predict(self, inputs: np.ndarray) -> np.ndarray:
+        return self._predict(self.W_vect, inputs)
+    
+    def _predict(self,
+                W_vect: np.ndarray,
+                inputs: np.ndarray) -> np.ndarray:
+        cur_units = inputs
+        for layer in self.layer_specs:
+            cur_weights = self.parser.get(W_vect, layer)
+            cur_units = layer.forward(cur_units, cur_weights)
+        return cur_units
+    
+    def eval(self, input: np.ndarray,
+            output: np.ndarray) -> float:
+        return self.loss(self.W_vect, input, output)
+    
+    def frac_err(self,
+                 X, T):
+        return np.mean(np.argmax(T, axis=1) != np.argmax(self.predict(self.W_vect, X), axis=1))
+    
+    def fit(self, 
+            optimiser: BaseOptimizer,
+            train_sample: tp.Tuple[np.ndarray], 
+            validation_sample: tp.Tuple[np.ndarray], 
+            batch_size: int,
+            iters: tp.Optional[int] = None,
+            verbose: tp.Optional[bool] = None):
         self._optimiser = optimiser
         verbose = verbose if verbose else False
         (X, y) = train_sample
@@ -95,16 +75,13 @@ class FeedForwardRegressor(BaseNetwork):
             history['iteration'].append(i)
             batch = np.random.default_rng().choice(range(X.shape[0]), batch_s)
             X_b, y_b = X[batch], y[batch]
-            inst, tr_loss = self._optimiser.apply(self._loss, X_b, y_b, self.layers, verbose=verbose)
+            to_stop, inst, tr_loss = self._optimiser.apply(self.loss, X_b, y_b, self.W_vect, verbose=verbose)
             history['train_loss'].append(tr_loss)
-            for layer_self, layer_inst  in zip(self.layers, inst):
-                layer_self.weights = layer_inst.weights
-            val_loss = self.eval(*validation_sample)
+            val_loss = self.eval(*validation_sample)[0]
             history['validation_loss'].append(val_loss)
             if verbose:
                 print(f'validation loss - {val_loss}')
+            self.W_vect = inst
+            if to_stop:
+                break
         return self, history
-
-        
-
-        

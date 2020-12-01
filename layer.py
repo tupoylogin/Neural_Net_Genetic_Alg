@@ -1,25 +1,46 @@
 import typing as tp
 
 import autograd.numpy as np
+from autograd.scipy.signal import convolve, compute_conv_size
 from autograd.differential_operators import elementwise_grad
 
-from .functions import ReLU
-from .utils import weights_on_batch
+from functions import GaussianRBF, ReLU, Linear
+from utils import weights_on_batch
+
+class WeightsParser(object):
+    """A helper class to index into a parameter vector."""
+    def __init__(self):
+        self.idxs_and_shapes = {}
+        self.N = 0
+
+    def add_weights(self, name, shape):
+        start = self.N
+        self.N += np.prod(shape)
+        self.idxs_and_shapes[name] = (slice(start, self.N), shape)
+
+    def get(self, vect, name):
+        idxs, shape = self.idxs_and_shapes[name]
+        return np.reshape(vect[idxs], shape)
 
 class BaseLayer():
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nonlinearity: tp.Callable[[tp.Any], np.ndarray], 
+                *args, **kwargs):
         """
         Base Layer Structure
         """
-        self.weights = None
+        self.parser = WeightsParser()
+        self.nonlinearity = nonlinearity
     
     @property
-    def weights(self):
-        return self._weights
+    def parser(self):
+        return self._parser
     
-    @weights.setter
-    def weights(self, value: tp.Union[int, float]):
-        self._weights = value
+    @parser.setter
+    def parser(self, value: WeightsParser):
+        self._parser = value
+    
+    def build_weights_dict(self, *args):
+        raise NotImplementedError
 
     def forward(self, *args, **kwargs):
         """
@@ -27,78 +48,145 @@ class BaseLayer():
         """
         raise NotImplementedError
 
+class Conv2D(BaseLayer):
+    def __init__(self, 
+                kernel_shape: tp.Tuple[int], 
+                num_filters: int, 
+                mode: str,
+                nonlinearity: tp.Callable[[tp.Any], np.ndarray]):
+        self.kernel_shape = kernel_shape
+        self.num_filters = num_filters
+        self._mode = mode
+        super().__init__(nonlinearity=nonlinearity)
+
+    def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
+        # Input dimensions:  [data, color_in, y, x]
+        # Params dimensions: [color_in, color_out, y, x]
+        # Output dimensions: [data, color_out, y, x]
+        params = self.parser.get(param_vector, 'params')
+        biases = self.parser.get(param_vector, 'biases')
+        conv = convolve(inputs, params, axes=([2, 3], [2, 3]), dot_axes = ([1], [0]), mode=self._mode)
+        return conv + biases
+
+    def build_weights_dict(self, input_shape: tp.Tuple[int]):
+        # Input shape : [color, y, x] (don't need to know number of data yet)
+        self.parser.add_weights('params', (input_shape[0], self.num_filters)
+                                          + self.kernel_shape)
+        self.parser.add_weights('biases', (1, self.num_filters, 1, 1))
+        output_shape = (self.num_filters,) + \
+                       self.conv_output_shape(input_shape[1:], self.kernel_shape)
+        return self.parser.N, output_shape
+
+    def conv_output_shape(self, A, B):
+        return compute_conv_size(A, B, self._mode)
+
+class MaxPool(BaseLayer):
+    def __init__(self, pool_shape,
+                nonlinearity: tp.Callable[[tp.Any], np.ndarray]):
+        self.pool_shape = pool_shape
+        super().__init__(nonlinearity=nonlinearity)
+
+    def build_weights_dict(self, input_shape):
+        # input_shape dimensions: [color, y, x]
+        output_shape = list(input_shape)
+        for i in [0, 1]:
+            assert input_shape[i + 1] % self.pool_shape[i] == 0, \
+                "maxpool shape should tile input exactly"
+            output_shape[i + 1] = input_shape[i + 1] / self.pool_shape[i]
+        return 0, output_shape
+
+    def forward(self, inputs, param_vector):
+        new_shape = inputs.shape[:2]
+        for i in [0, 1]:
+            pool_width = self.pool_shape[i]
+            img_width = inputs.shape[i + 2]
+            new_shape += (img_width // pool_width, pool_width)
+        result = inputs.reshape(new_shape)
+        return np.max(np.max(result, axis=3), axis=4)
 
 class Dense(BaseLayer):
-    def __init__(self,
-        input_size: int,
-        num_units: int, 
-        kernel_initializer: tp.Optional[tp.Callable[..., np.ndarray]] = None,
-        bias_initializer: tp.Optional[tp.Callable[..., np.ndarray]] = None,
-        activation: tp.Optional[tp.Callable[..., tp.Any]] = None,
-        lambda_reg: tp.Optional[float] = None,
-        regularization: tp.Optional[str] = None,
-        **kwargs):
+    def __init__(self, size,
+                nonlinearity: tp.Callable[[tp.Any], np.ndarray]):
         """
         Dense Layer
 
         Args:
-            input_size (int): number of input neurons.
-            output_size (int): number of onput neurons.
-            kernel_initializer (callable): probability distribution of weights.
-            bias_initializer (callable): probability distribution of bias coefficients.
-            acivation (callable): activation function.
-            lambda_reg (float): regularization coefficient.
-            regularization (callable): regularization function.
+            size (int): number of units.
+            nonlinearity (callable): activation function.
         """
-        super().__init__(**kwargs)
-        self._number = kwargs.pop('number', 0)
-        if kernel_initializer is None:
-            weights = np.random.default_rng(42).normal(0, 0.1, size=(input_size, num_units))
-        else:
-            weights = kernel_initializer((input_size, num_units))
-        if bias_initializer is None:
-            bias = np.random.default_rng().uniform(size=(1, num_units))
-        else:
-            bias = bias_initializer((1, num_units))
-        self.weights = np.vstack((weights, bias))
-        self.activation = ReLU if activation is None else activation
-        self.lambda_reg = 0. if lambda_reg is None else lambda_reg
-        if regularization:
-            if regularization == 'l1':
-                self.regularization = lambda x: self.lambda_reg*np.sum(np.abs(x))
-            elif regularization == 'l2':
-                self.regularization = lambda x: self.lambda_reg*np.sum(np.power(x, 2))
-        else:
-            self.regularization = None
-    
-    def forward(self, X: np.ndarray):
+        self.size = size
+        super().__init__(nonlinearity=nonlinearity)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        self.parser.add_weights('params', (input_size, self.size))
+        self.parser.add_weights('biases', (self.size,))
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        params = self.parser.get(param_vector, 'params')
+        biases = self.parser.get(param_vector, 'biases')
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        return self.nonlinearity(np.dot(inputs[:, :], params) + biases)
+
+class RBFDense(BaseLayer):
+    def __init__(self, size: int):
         """
-        Forward pass of layer
+        Gaussian RBF Dense Layer
 
         Args:
-            X (ndarray): input tensor
-        Returns:
-            output (ndarray): response of layer
+            size (int): numberof units.
+            nonlinearity (callable): activation function.
         """
-        X_plus_bias = np.hstack((X,np.ones(X.shape[0]).reshape(-1,1)))
-        output = self.activation(np.sum(weights_on_batch(self.weights, X_plus_bias),-1))
-        if self.regularization:
-            output += self.regularization(self.weights)
-        return output
-    
-    def backward(self, X: np.ndarray):
+        self.size = size
+        self.rbf = GaussianRBF
+        super().__init__(nonlinearity=Linear)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        self.parser.add_weights('mu', (input_size, self.size))
+        self.parser.add_weights('sigma', (self.size, ))
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        mu = self.parser.get(param_vector, 'mu')
+        sigma = self.parser.get(param_vector, 'sigma')
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = np.tile(np.expand_dims(inputs[:,:], axis=-1), self.size)
+        return self.nonlinearity(self.rbf(inputs, mu, sigma))
+
+class Fuzzify(BaseLayer):
+    def __init__(self, size: int, 
+                msf: tp.Callable[[tp.Any], np.ndarray]):
         """
-        Backward pass of layer
+        Fuzzification Layer
 
         Args:
-            X (ndarray): input tensor
-        Returns:
-            output (ndarray): gradient of layer with respect to weights
+            size (int): number of rules.
+            msf (callable): membership function.
         """
-        X_plus_bias = np.hstack((X,np.ones(X.shape[0]).reshape(-1,1)))
-        grad = elementwise_grad(self.activation)(weights_on_batch(self.weights, X_plus_bias))
-        output = np.mean(np.array([grad[i]*X_plus_bias[i] for i in range(grad.shape[0])]), axis=0)
-        if self.regularization:
-            reg_grad = elementwise_grad(self.regularization)(self.weights)
-            output += reg_grad.T
-        return output
+        self.size = size
+        self.msf = msf
+        super().__init__(nonlinearity=Linear)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        self.parser.add_weights('mu', (input_size*self.size, ))
+        self.parser.add_weights('sigma', (input_size*self.size, ))
+        return self.parser.N, (self.size, )
+
+    def forward(self, inputs, param_vector):
+        mu = self.parser.get(param_vector, 'mu')
+        sigma = self.parser.get(param_vector, 'sigma')
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = np.tile(inputs[:, :], (1, self.size))
+        return self.nonlinearity(self.mbf(inputs, mu, sigma))
+
+def TSKLayer(BaseLayer):
+    pass

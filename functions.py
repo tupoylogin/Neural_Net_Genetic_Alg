@@ -1,7 +1,6 @@
 import typing as tp 
 
 import autograd.numpy as np
-from autograd import elementwise_grad
 
 def ReLU(x: np.ndarray) -> np.ndarray:
     
@@ -19,6 +18,10 @@ def Tanh(x: np.ndarray) -> np.ndarray:
 def LogSigmoid(x: np.ndarray) -> np.ndarray:
     return x - np.logaddexp(0, x)
 
-def GaussianRBF(x: np.ndarray, c: tp.Optional[float] = 0., 
-                r: tp.Optional[float] = 1.) -> np.ndarray:
-    return np.exp(-1*(x-c)**2/r**2)
+def GaussianRBF(x: np.ndarray, c: np.ndarray, 
+                r: np.ndarray) -> np.ndarray:
+    return np.exp(-0.5*r*np.linalg.norm(x-c, 2, axis=1))
+
+def BellMembership(x: np.ndarray, c: np.ndarray,
+                  r: np.ndarray) -> np.ndarray:
+    return np.exp(-0.5*(x-c)/r**2)

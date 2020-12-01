@@ -3,11 +3,11 @@ from functools import partial
 from threading import setprofile
 import typing as tp
 
-from autograd import elementwise_grad
+from autograd import grad
 import numpy as np
 
-from .layer import BaseLayer
-from .utils import cast_to_same_shape
+from layer import BaseLayer
+from utils import cast_to_same_shape
 
 class BaseOptimizer():
     def __init__(self, *args, **kwargs):
@@ -34,11 +34,11 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         self._best_iter = None
         self._last_score = np.inf
         self._iter = 0
-        self._tol = kwargs.pop('tol', 1e-5)
+        self._tol = kwargs.pop('tol', 1e-2)
         super().__init__(**kwargs)
     
     @staticmethod
-    def construct_genome(layers_list: tp.List[BaseLayer],
+    def construct_genome(W: np.ndarray,
                     weight_init: tp.Callable[..., np.ndarray]):
         """
         Construct random population
@@ -48,33 +48,32 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
             weight_init (callable): weight distribution function
         
         Returns:
-            layers (list(BaseLayer)): FFN layers list with initalized weights
+            genome (np.ndarray): initalized weights
         """
-        layers = deepcopy(layers_list)
-        for l in layers:
-            l.weights = weight_init(0, 0.1, size=l.weights.shape)
-        return layers
+        return weight_init(0, 0.1, size=W.shape)
+        
 
     @staticmethod
-    def crossover(ind_1: tp.List[BaseLayer], ind_2: tp.List[BaseLayer]) -> tp.List[BaseLayer]:
+    def crossover(ind_1: np.ndarray, 
+                ind_2: np.ndarray) -> np.ndarray:
         """
         Perform simple crossover
 
         Args:
-            ind_1 (list(BaseLayer)): FFN layers list, first individual
-            ind_2 (list(BaseLayer)): FFN layers list, second individual
+            ind_1 (np.ndarray): FFN layers weights, first individual
+            ind_2 (np.ndarray): FFN layers weights, second individual
         
         Returns:
-            ind_12, ind_21 (tuple(list(BaseLayer))): generated offsprings
+            ind_12, ind_21 (np.ndarray): generated offsprings
         """
         assert len(ind_1) == len(ind_2), 'individuals must have same len'
         index = np.random.default_rng().integers(len(ind_1))
-        ind_12 =  ind_1[:index]+ind_2[index:]
-        ind_21 =  ind_2[:index]+ind_1[index:]
+        ind_12 = np.concatenate((ind_1[:index], ind_2[index:]), axis=None)
+        ind_21 = np.concatenate((ind_2[:index], ind_1[index:]), axis=None)
         return ind_12, ind_21
 
     @staticmethod
-    def mutate(ind: tp.List[BaseLayer], 
+    def mutate(ind: np.ndarray, 
                     mu: float = 0.,
                     sigma: float = 1.,
                     factor: float = 0.01) -> tp.List[BaseLayer]:
@@ -82,24 +81,23 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         Perform simple mutation
 
         Args:
-            ind (list(BaseLayer)): FFN layers list
+            ind (np.ndarray): FFN layers weights
             mu (float): mean of distribution
             sigma (float): scale of distribution
             factor (float): scale factor of mutation
         
         Returns:
-            ind (list(BaseLayer)): generated individual
+            ind (np.ndarray): generated individual
         """
-        for l in ind:
-            l.weights += factor*np.random.default_rng().normal(loc=mu, 
-                scale=sigma, size=l.weights.shape)
+        ind += factor*np.random.default_rng().normal(loc=mu, 
+                scale=sigma, size=len(ind))
         return ind
     
     def apply(self, 
             loss: tp.Callable[[np.ndarray, np.ndarray, tp.Optional[tp.Dict[str, float]]], float], 
             input_tensor: np.ndarray, 
             output_tensor: np.ndarray, 
-            graph: tp.List[BaseLayer],
+            W: np.ndarray,
             **kwargs):
         """
         Perform one step of GA
@@ -115,19 +113,15 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
             score (float): lowest loss so far
         """
         verbose = kwargs.pop('verbose', False)
+        to_stop = False
         if not(self._population):
-            population =[self.construct_genome(graph, np.random.default_rng().normal) 
+            population =[self.construct_genome(W, np.random.default_rng().normal) 
             for i in range(self._num_population)]
         else:
             population = self._population[:]
         scores=[]
         for g in population:
-            res = input_tensor
-            for idx, layer in enumerate(g):
-                res = layer.forward(res)
-            y_pred = res.ravel()
-            cast_to_same_shape(y_pred, output_tensor)
-            scores.append(loss(output_tensor, y_pred))
+            scores.append(loss(g, input_tensor, output_tensor)[0])
         scores, scores_idx = np.sort(scores), np.argsort(scores)
         if verbose:
             print(f'best individual - {scores[0]}')
@@ -136,6 +130,8 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
             self._best_iter = population[scores_idx[0]]
         else:
             self._best_iter = population[0]
+        if scores[0]<self._tol:
+            to_stop = True
         self._population = np.array(population)[scores_idx][:self._num_population-self._k*3].tolist()
         probas = np.exp(-1*scores)/np.sum(np.exp(-1*scores))
         for _ in range(self._k):
@@ -147,7 +143,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         for idx in idx_survived:
             self._population.append(self.mutate(population[idx], factor=np.random.default_rng().normal(0,0.01)))
         self._iter += 1
-        return self._best_iter, scores[0]
+        return to_stop, np.array(self._best_iter), scores[0]
 
 class SGDOptimizer(BaseOptimizer):
     def __init__(self, alpha: float = 0., eta: float = 1e-3, **kwargs):
@@ -162,16 +158,17 @@ class SGDOptimizer(BaseOptimizer):
         self._alpha = alpha
         self._eta = eta
         self._score = []
-        self._tol = kwargs.pop('tol', 1e-3)
+        self._tol = kwargs.pop('tol', 1e-2)
         self._batch_size = kwargs.pop('batch_size', 1)
         self._v_t = []
         super().__init__(**kwargs)
     
     def apply(self, 
-            loss: tp.Callable[[np.ndarray, np.ndarray, tp.Optional[tp.Dict[str, float]]], float], 
+            loss: tp.Callable[[np.ndarray, np.ndarray, np.ndarray, 
+                                tp.Optional[tp.Dict[str, float]]], float], 
             input_tensor: np.ndarray, 
             output_tensor: np.ndarray, 
-            graph: tp.List[BaseLayer],
+            W: np.ndarray,
             **kwargs):
         """
         Perform one step of SGD
@@ -187,62 +184,82 @@ class SGDOptimizer(BaseOptimizer):
             score (float): loss on current iteration
         """
         verbose = kwargs.pop('verbose', False)
-        if not(self._v_t):
-            self._v_t = [np.zeros_like(l.weights) for l in graph][::-1]
+        to_stop = False
+        loss_grad = grad(loss)
+        if not(len(self._v_t)):
+            self._v_t = np.zeros_like(W)
         rand_subset = np.random.default_rng().choice(range(input_tensor.shape[0]), self._batch_size)
-        res, grads = [], []
-        res.append(input_tensor)
-        for layer in graph:
-            res.append(layer.forward(res[-1]))
-        cast_to_same_shape(res[-1], output_tensor)
-        self._score.append(loss(output_tensor, res[-1].ravel()))
+        self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f'train score - {self._score[-1]}')
-        for idx, layer in enumerate(graph[::-1]):
-            if idx==0:
-                loss_grad = np.sum(elementwise_grad(loss, 1)(output_tensor[rand_subset], 
-                                                            res[-1].ravel()[rand_subset]))
-                grads.append(loss_grad*layer.backward(res[-2][rand_subset]))
-            else:
-                grd = layer.backward(res[-idx-2][rand_subset])
-                grads.append(grads[idx-1][:, :-1].T*grd)
-            self._v_t[idx] = self._alpha*self._v_t[idx]-(1-self._alpha)*grads[idx].T
-            layer.weights += self._eta*self._v_t[idx]
-        return graph, self._score[-1]
+        grad_W = loss_grad(W, input_tensor[rand_subset], 
+                            output_tensor[rand_subset])
+        if self._score[-1]<=self._tol:
+            to_stop = True
+        self._v_t = self._alpha * self._v_t + (1.0 - self._alpha) * grad_W
+        param = W - self._eta * self._v_t
+        print(grad_W)
+        return to_stop, param, self._score[-1]
 
 class ConjugateSGDOptimizer(BaseOptimizer):
-    def __init__(self, alpha: float, eta: float = 1e-3, **kwargs):
-        self._alpha = alpha if alpha else 0.
+    def __init__(self, eta: float = 1e-3, **kwargs):
+        """
+        Stochastic Gradient Descent Optimiser
+
+        Args:
+            alpha (float): momentum constant, 0 by default
+            eta (float): learning rate constant, 0.01 by default
+            batch_size (int): batch_size for calculations
+        """
+        self._beta = 1.
         self._eta = eta
         self._score = []
-        self._tol = kwargs.pop('tol', 1e-3)
+        self._tol = kwargs.pop('tol', 1e-2)
         self._batch_size = kwargs.pop('batch_size', 1)
+        self._g_t = []
+        self._p_t = []
         super().__init__(**kwargs)
     
     def apply(self, 
-            loss: tp.Callable[[np.ndarray, np.ndarray, tp.Optional[tp.Dict[str, float]]], float], 
+            loss: tp.Callable[[np.ndarray, np.ndarray, np.ndarray, 
+                                tp.Optional[tp.Dict[str, float]]], float], 
             input_tensor: np.ndarray, 
             output_tensor: np.ndarray, 
-            graph: tp.List[BaseLayer],
-            **kwargs): 
+            W: np.ndarray,
+            **kwargs):
+        """
+        Perform one step of SGD
+
+        Args:
+            loss (callable): loss function to minimize
+            input_tensor (ndarray): global input to FFN, i.e. your `X` variable
+            output_tensor (ndarray): desired FFN response, i.e. your `Y` variable 
+            graph (list(BaseLayer)): your FFN structure
+        
+        Returns:
+            graph (list(BaseLayer)): FFN struture with corrected weights
+            score (float): loss on current iteration
+        """
+        W_vect = W
         verbose = kwargs.pop('verbose', False)
+        to_stop = False
+        loss_grad = grad(loss)
+        if not(len(self._g_t)):
+            self._g_t.append(np.ones_like(W))
+            self._p_t.append(np.zeros_like(W))
         rand_subset = np.random.default_rng().choice(range(input_tensor.shape[0]), self._batch_size)
-        res, grads = [], []
-        res.append(input_tensor)
-        for layer in graph:
-            res.append(layer.forward(res[-1]))
-        cast_to_same_shape(res[-1], output_tensor)
-        self._score.append(loss(output_tensor, res[-1].ravel()))
+        self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f'train score - {self._score[-1]}')
-        for idx, layer in enumerate(graph[::-1]):
-            if idx==0:
-                loss_grad = np.sum(elementwise_grad(loss, 1)(output_tensor[rand_subset], 
-                                                            res[-1].ravel()[rand_subset]))
-                grads.append(loss_grad*layer.backward(res[-2][rand_subset]))
-            else:
-                grd = layer.backward(res[-idx-2][rand_subset])
-                grads.append(grads[idx-1][:, :-1].T*grd)
-            self._v_t[idx] = self._alpha*self._v_t[idx]-(1-self._alpha)*grads[idx].T
-            layer.weights += self._eta*self._v_t[idx]
-        return graph, self._score[-1]
+        self._g_t.append(loss_grad(W_vect, input_tensor[rand_subset], 
+                            output_tensor[rand_subset]))
+        self._p_t.append(-self._g_t[-1]+self._beta*self._p_t[-1])
+        W_vect += self._eta * self._p_t[-1]
+        print(W_vect)
+        if self._score[-1]<=self._tol:
+            print('here')
+            to_stop = True
+            self._beta = 1.
+        else:
+            self._beta = np.dot(self._g_t[-1], self._g_t[-1])/np.dot(self._g_t[-2], self._g_t[-2])
+        return to_stop, np.array(W_vect), self._score[-1]
