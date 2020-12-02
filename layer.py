@@ -30,6 +30,7 @@ class BaseLayer():
         """
         self.parser = WeightsParser()
         self.nonlinearity = nonlinearity
+        self.number = kwargs.get('number', 0)
     
     @property
     def parser(self):
@@ -47,6 +48,9 @@ class BaseLayer():
         Performs forward pass logic of layer
         """
         raise NotImplementedError
+
+    def __str__(self):
+        return self.__class__.__name__+str(self.number)
 
 class Conv2D(BaseLayer):
     def __init__(self, 
@@ -181,12 +185,31 @@ class Fuzzify(BaseLayer):
         return self.parser.N, (self.size, )
 
     def forward(self, inputs, param_vector):
+        inp_size = inputs.shape[-1]
         mu = self.parser.get(param_vector, 'mu')
         sigma = self.parser.get(param_vector, 'sigma')
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         inputs = np.tile(inputs[:, :], (1, self.size))
-        return self.nonlinearity(self.mbf(inputs, mu, sigma))
+        return self.nonlinearity(np.reshape(self.msf(inputs, mu, sigma),(-1, inp_size, self.size)))
 
-def TSKLayer(BaseLayer):
-    pass
+class TSKLayer(BaseLayer):
+    def __init__(self, size: int):
+        """
+        Defuzzification Layer with TSK Controller
+
+        Args:
+            size (int): number of rules.
+        """
+        self.size = size
+        super().__init__(nonlinearity=Linear)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        self.parser.add_weights('y', (1, self.size))
+        return self.parser.N, (self.size, )
+
+    def forward(self, inputs, param_vector):
+        y = self.parser.get(param_vector, 'y')
+        inputs = np.prod(inputs, axis=1)
+        return self.nonlinearity(np.multiply(inputs, y)/np.sum(inputs, axis=0))

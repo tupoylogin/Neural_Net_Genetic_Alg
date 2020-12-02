@@ -16,12 +16,12 @@ def Tanh(x: np.ndarray) -> np.ndarray:
     return np.tanh(x)
 
 def LogSigmoid(x: np.ndarray) -> np.ndarray:
-    return x - np.logaddexp(0, x)
+    return np.clip(x - np.logaddexp(0, x), 1e-6, 1e6)
 
 def GaussianRBF(x: np.ndarray, c: np.ndarray, 
                 r: np.ndarray) -> np.ndarray:
-    return np.exp(-0.5*r*np.linalg.norm(x-c, 2, axis=1))
+    return np.clip(np.exp(-0.5*np.multiply(np.linalg.norm(x-c, 2, axis=1), np.power(r,-2))), 1e-6, 1e6)
 
 def BellMembership(x: np.ndarray, c: np.ndarray,
-                  r: np.ndarray) -> np.ndarray:
-    return np.exp(-0.5*(x-c)/r**2)
+                  r: np.ndarray) -> np.ndarray: 
+    return np.clip(np.exp(-0.5*np.multiply(np.power(x-c, 2),np.power(r,-2))),1e-6,1e6)

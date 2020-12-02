@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import datetime
 from functools import partial
 from threading import setprofile
 import typing as tp
@@ -50,7 +51,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         Returns:
             genome (np.ndarray): initalized weights
         """
-        return weight_init(0, 0.1, size=W.shape)
+        return 0.1*weight_init(0, 1, size=W.shape)
         
 
     @staticmethod
@@ -74,8 +75,8 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
 
     @staticmethod
     def mutate(ind: np.ndarray, 
-                    mu: float = 0.,
-                    sigma: float = 1.,
+                    mu: float = 0.1,
+                    sigma: float = 1,
                     factor: float = 0.01) -> tp.List[BaseLayer]:
         """
         Perform simple mutation
@@ -89,7 +90,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         Returns:
             ind (np.ndarray): generated individual
         """
-        ind += factor*np.random.default_rng().normal(loc=mu, 
+        ind += factor*np.random.default_rng(int(datetime.utcnow().timestamp()*1e5)).normal(loc=mu, 
                 scale=sigma, size=len(ind))
         return ind
     
@@ -113,9 +114,10 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
             score (float): lowest loss so far
         """
         verbose = kwargs.pop('verbose', False)
+        seed = int(datetime.utcnow().timestamp()*1e5)
         to_stop = False
         if not(self._population):
-            population =[self.construct_genome(W, np.random.default_rng().normal) 
+            population =[self.construct_genome(W, np.random.default_rng(seed+42*i).normal) 
             for i in range(self._num_population)]
         else:
             population = self._population[:]
@@ -125,25 +127,26 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         scores, scores_idx = np.sort(scores), np.argsort(scores)
         if verbose:
             print(f'best individual - {scores[0]}')
-        if self._last_score>scores[0]:
-            self._last_score = scores[0]
-            self._best_iter = population[scores_idx[0]]
-        else:
-            self._best_iter = population[0]
+        #if self._last_score>scores[0]:
+        #    self._last_score = scores[0]
+        #    self._best_iter = population[scores_idx[0]]
+        #else:
+        #    self._best_iter = population[scores_idx[0]]
         if scores[0]<self._tol:
             to_stop = True
         self._population = np.array(population)[scores_idx][:self._num_population-self._k*3].tolist()
-        probas = np.exp(-1*scores)/np.sum(np.exp(-1*scores))
+        probas = 1. - (scores-np.min(scores))/np.ptp(scores)
         for _ in range(self._k):
-            indices = np.random.default_rng().choice(scores_idx, 2, p=probas)
+            indices = np.random.default_rng(seed).choice(scores_idx, 2, p=probas/sum(probas))
             ind_1, ind_2 = self.crossover(population[indices[0]], population[indices[1]])
-            self._population.append(self.mutate(ind_1, factor=np.random.default_rng().normal(0,0.001)))
-            self._population.append(self.mutate(ind_2, factor=np.random.default_rng().normal(0,0.001)))
+            self._population.append(self.mutate(ind_1, factor=np.random.default_rng(seed).normal(0.01,0.1)))
+            self._population.append(self.mutate(ind_2, factor=np.random.default_rng(seed).normal(0.01,0.1)))
         idx_survived = np.random.default_rng().choice(scores_idx[:len(population)], self._k)
         for idx in idx_survived:
-            self._population.append(self.mutate(population[idx], factor=np.random.default_rng().normal(0,0.01)))
+            self._population.append(self.mutate(population[idx], factor=np.random.default_rng(seed).normal(0.1,0.1)))
         self._iter += 1
-        return to_stop, np.array(self._best_iter), scores[0]
+        print(population[scores_idx[0]])
+        return to_stop, np.array(population[scores_idx[0]]), scores[0]
 
 class SGDOptimizer(BaseOptimizer):
     def __init__(self, alpha: float = 0., eta: float = 1e-3, **kwargs):
@@ -192,13 +195,20 @@ class SGDOptimizer(BaseOptimizer):
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f'train score - {self._score[-1]}')
-        grad_W = loss_grad(W, input_tensor[rand_subset], 
-                            output_tensor[rand_subset])
+        grad_W = np.clip(loss_grad(W, input_tensor[rand_subset], 
+                            output_tensor[rand_subset]),-1e3,1e3)
+        grad_W /=np.linalg.norm(grad_W)
+        print(grad_W)
         if self._score[-1]<=self._tol:
             to_stop = True
         self._v_t = self._alpha * self._v_t + (1.0 - self._alpha) * grad_W
+<<<<<<< Updated upstream
         param = W - self._eta * self._v_t
         return to_stop, param, self._score[-1]
+=======
+        W -= self._eta * self._v_t
+        return to_stop, W, self._score[-1]
+>>>>>>> Stashed changes
 
 class ConjugateSGDOptimizer(BaseOptimizer):
     def __init__(self, eta: float = 1e-3, **kwargs):
@@ -239,7 +249,6 @@ class ConjugateSGDOptimizer(BaseOptimizer):
             W (ndarray): updated NN weight matrix
             score (float): loss on current iteration
         """
-        W_vect = W
         verbose = kwargs.pop('verbose', False)
         loss_grad = grad(loss)
         
@@ -247,6 +256,7 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f'train score - {self._score[-1]}')
+<<<<<<< Updated upstream
 
         g = loss_grad(W_vect, input_tensor[rand_subset], output_tensor[rand_subset])
         d = W_vect.shape[0]
@@ -262,9 +272,22 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         
         W_vect += self._eta * p
 
+=======
+        grad_W = np.clip(loss_grad(W, input_tensor[rand_subset], 
+                            output_tensor[rand_subset]),-1e3,1e3)
+        grad_W /=np.linalg.norm(grad_W)
+        self._g_t.append(grad_W)
+        self._p_t.append(-self._g_t[-1]+self._beta*self._p_t[-1])
+        W += self._eta * self._p_t[-1]
+>>>>>>> Stashed changes
         if self._score[-1]<=self._tol:
             to_stop = True
         else:
+<<<<<<< Updated upstream
             to_stop = False
 
         return to_stop, np.array(W_vect), self._score[-1]
+=======
+            self._beta = np.dot(self._g_t[-1], self._g_t[-1])/np.dot(self._g_t[-2], self._g_t[-2])
+        return to_stop, W, self._score[-1]
+>>>>>>> Stashed changes

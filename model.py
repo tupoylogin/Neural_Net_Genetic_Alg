@@ -1,10 +1,11 @@
 import typing as tp
+from datetime import datetime
 
 import autograd.numpy as np
 from tqdm.auto import tqdm
 
-from layer import BaseLayer, Dense, WeightsParser
-from functions import GaussianRBF, ReLU, Tanh, Sigmoid, Linear
+from layer import BaseLayer, Dense, WeightsParser, Fuzzify, TSKLayer
+from functions import GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
 from optimisers import BaseOptimizer
 from utils import cast_to_same_shape
 
@@ -14,16 +15,24 @@ class FFN(object):
                 layer_specs: tp.List[BaseLayer],
                 loss: tp.Callable[..., np.ndarray],
                 **kwargs) -> None:
+        """
+        Feed Forward Network
+        Args:
+            input_shape (int): shape of your `X` variable
+            layer_specs (list(BaseLayer)): layer list
+            loss (callable): loss function
+        """
         self.parser = WeightsParser()
         self.regularization = kwargs.get('regularization', 'l2')
         self.reg_coef = kwargs.get('reg_coef', 0)
         self.layer_specs = layer_specs
         cur_shape = input_shape
-        for layer in self.layer_specs:
+        for num, layer in enumerate(self.layer_specs):
+            layer.number = num
             N_weights, cur_shape = layer.build_weights_dict(cur_shape)
-            self.parser.add_weights(layer, (N_weights,))
+            self.parser.add_weights(str(layer), (N_weights,))
         self._loss = loss
-        self.W_vect = 0.1*np.random.default_rng(72).normal(size=(self.parser.N,))
+        self.W_vect = 0.1*np.random.default_rng(int(datetime.utcnow().timestamp()*1e5)).normal(size=(self.parser.N,))
     
     def loss(self, 
              W_vect: np.ndarray,  
@@ -45,7 +54,7 @@ class FFN(object):
                 inputs: np.ndarray) -> np.ndarray:
         cur_units = inputs
         for layer in self.layer_specs:
-            cur_weights = self.parser.get(W_vect, layer)
+            cur_weights = self.parser.get(W_vect, str(layer))
             cur_units = layer.forward(cur_units, cur_weights)
         return cur_units
     
@@ -73,7 +82,7 @@ class FFN(object):
         history = dict(iteration=[], train_loss=[], validation_loss=[])
         for i in tqdm(range(iters), desc="Training "):
             history['iteration'].append(i)
-            batch = np.random.default_rng().choice(range(X.shape[0]), batch_s)
+            batch = np.random.default_rng(42).choice(range(X.shape[0]), batch_s)
             X_b, y_b = X[batch], y[batch]
             to_stop, inst, tr_loss = self._optimiser.apply(self.loss, X_b, y_b, self.W_vect, verbose=verbose)
             history['train_loss'].append(tr_loss)
@@ -85,3 +94,22 @@ class FFN(object):
             if to_stop:
                 break
         return self, history
+
+class ANFIS(FFN):
+    def __init__(self, input_shape: int,
+                num_rules: int,
+                loss: tp.Callable[..., np.ndarray],
+                **kwargs) -> None:
+        """
+        Adaptive Neuro Fuzzy Inference System (ANFIS) Network
+        Args:
+            input_shape (int): shape of your `X` variable
+            num_rules (int): number of fuzzy rules to initiate
+            loss (callable): loss function
+        """
+        super().__init__(input_shape=input_shape,
+                        layer_specs=[Fuzzify(num_rules, msf=BellMembership), 
+                                    TSKLayer(num_rules),
+                                    Dense(1, nonlinearity=Linear)],
+                        loss=loss, **kwargs)
+    
