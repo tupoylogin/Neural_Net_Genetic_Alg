@@ -198,26 +198,24 @@ class SGDOptimizer(BaseOptimizer):
             to_stop = True
         self._v_t = self._alpha * self._v_t + (1.0 - self._alpha) * grad_W
         param = W - self._eta * self._v_t
-        print(grad_W)
         return to_stop, param, self._score[-1]
 
 class ConjugateSGDOptimizer(BaseOptimizer):
     def __init__(self, eta: float = 1e-3, **kwargs):
         """
-        Stochastic Gradient Descent Optimiser
+        Conjugate Stochastic Gradient Descent Optimiser
 
         Args:
-            alpha (float): momentum constant, 0 by default
             eta (float): learning rate constant, 0.01 by default
             batch_size (int): batch_size for calculations
         """
-        self._beta = 1.
         self._eta = eta
         self._score = []
         self._tol = kwargs.pop('tol', 1e-2)
         self._batch_size = kwargs.pop('batch_size', 1)
-        self._g_t = []
-        self._p_t = []
+        self._g_prev = None
+        self._p_prev = None
+        self._k = 0
         super().__init__(**kwargs)
     
     def apply(self, 
@@ -228,38 +226,45 @@ class ConjugateSGDOptimizer(BaseOptimizer):
             W: np.ndarray,
             **kwargs):
         """
-        Perform one step of SGD
+        Perform one step of ConjugateSGDOptimizer
 
         Args:
             loss (callable): loss function to minimize
             input_tensor (ndarray): global input to FFN, i.e. your `X` variable
             output_tensor (ndarray): desired FFN response, i.e. your `Y` variable 
-            graph (list(BaseLayer)): your FFN structure
+            W (ndarray): NN weight matrix
         
         Returns:
-            graph (list(BaseLayer)): FFN struture with corrected weights
+            to_stop (bool): Flag, which indicates that tollerance was reached 
+            W (ndarray): updated NN weight matrix
             score (float): loss on current iteration
         """
         W_vect = W
         verbose = kwargs.pop('verbose', False)
-        to_stop = False
         loss_grad = grad(loss)
-        if not(len(self._g_t)):
-            self._g_t.append(np.ones_like(W))
-            self._p_t.append(np.zeros_like(W))
+        
         rand_subset = np.random.default_rng().choice(range(input_tensor.shape[0]), self._batch_size)
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f'train score - {self._score[-1]}')
-        self._g_t.append(loss_grad(W_vect, input_tensor[rand_subset], 
-                            output_tensor[rand_subset]))
-        self._p_t.append(-self._g_t[-1]+self._beta*self._p_t[-1])
-        W_vect += self._eta * self._p_t[-1]
-        print(W_vect)
-        if self._score[-1]<=self._tol:
-            print('here')
-            to_stop = True
-            self._beta = 1.
+
+        g = loss_grad(W_vect, input_tensor[rand_subset], output_tensor[rand_subset])
+        d = W_vect.shape[0]
+
+        if (self._k == 0) or (d % self._k == 0):
+            p = - (g / np.linalg.norm(g))
         else:
-            self._beta = np.dot(self._g_t[-1], self._g_t[-1])/np.dot(self._g_t[-2], self._g_t[-2])
+            beta = (g @ g) / (self._g_prev @ self._g_prev)
+            p = - (g + beta*self._p_prev) / np.linalg.norm( -g + beta*self._p_prev)
+
+        self._g_prev = g
+        self._p_prev = p
+        
+        W_vect += self._eta * p
+
+        if self._score[-1]<=self._tol:
+            to_stop = True
+        else:
+            to_stop = False
+
         return to_stop, np.array(W_vect), self._score[-1]
