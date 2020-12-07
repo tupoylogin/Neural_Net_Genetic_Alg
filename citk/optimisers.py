@@ -140,7 +140,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
             : self._num_population - self._k * 3
         ].tolist()
         probas = 1.0 - (scores - np.min(scores)) / np.ptp(scores)
-        probas /= probas
+        probas /= sum(probas)
         for _ in range(self._k):
             indices = np.random.default_rng(seed).choice(scores_idx, 2, p=probas)
             ind_1, ind_2 = self.crossover(
