@@ -15,5 +15,5 @@ This is an ultimate package for SOTA CI algorithmes
 - [Multilayer Perceptron trained with Genetic Algorithm](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GeneticAlgorithm.ipynb)
 - [Multilayer Perceptron trained with SGD](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationSGD.ipynb)
 - [Multilayer Perceptron trained with Genetic Algorithm and then with SGD](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GeneticAndSGD.ipynb)
-- [Multilayer Perceptron trained with Conjugate SGD.](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationConjugateSGD.ipynb)
-- [ANFIS Neural Net trained with SGD.](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/AnfisSGD.ipynb)
+- [Multilayer Perceptron trained with Conjugate SGD](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationConjugateSGD.ipynb)
+- [ANFIS Neural Net trained with SGD](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/AnfisSGD.ipynb)
