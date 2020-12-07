@@ -5,7 +5,9 @@ This is an ultimate package for SOTA CI algorithmes
 # Installation
 
 `git clone https://github.com/tupoylogin/Neural_Net_Genetic_Alg.git`
+
 `cd Neural_Net_Genetic_Alg`
+
 `pip install .` (or `pip install -e .` to enable edit mode)
 
 # Examples
