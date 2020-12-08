@@ -178,54 +178,36 @@ class RBFDense(BaseLayer):
 
 
 class Fuzzify(BaseLayer):
-    def __init__(self, size: int, msf: tp.Callable[[tp.Any], np.ndarray]):
+    def __init__(self, num_rules: int, msf: tp.Callable[[tp.Any], np.ndarray]):
         """
         Fuzzification Layer
 
         Args:
-            size (int): number of rules.
+            num_rules (int): number of rules.
             msf (callable): membership function.
         """
-        self.size = size
+        self.size = num_rules
         self.msf = msf
         super().__init__(nonlinearity=Linear)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
-        self.parser.add_weights("mu", (input_size * self.size,))
-        self.parser.add_weights("sigma", (input_size * self.size,))
+        self.parser.add_weights("a", (input_size, self.size,))
+        self.parser.add_weights("c", (input_size, self.size,))
+        self.parser.add_weights("r", (self.size,))
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
         inp_size = inputs.shape[-1]
-        mu = self.parser.get(param_vector, "mu")
-        sigma = self.parser.get(param_vector, "sigma")
+        a = self.parser.get(param_vector, "a")[np.newaxis, :]
+        c = self.parser.get(param_vector, "c")[np.newaxis, :]
+        r = self.parser.get(param_vector, "r")[np.newaxis, :]
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
-        inputs = np.tile(inputs[:, :], (1, self.size))
-        return self.nonlinearity(
-            np.reshape(self.msf(inputs, mu, sigma), (-1, inp_size, self.size))
-        )
-
-
-class TSKLayer(BaseLayer):
-    def __init__(self, size: int):
-        """
-        Defuzzification Layer with TSK Controller
-
-        Args:
-            size (int): number of rules.
-        """
-        self.size = size
-        super().__init__(nonlinearity=Linear)
-
-    def build_weights_dict(self, input_shape):
-        # Input shape is anything (all flattened)
-        self.parser.add_weights("y", (1, self.size))
-        return self.parser.N, (self.size,)
-
-    def forward(self, inputs, param_vector):
-        y = self.parser.get(param_vector, "y")
-        inputs = np.prod(inputs, axis=1)
-        return self.nonlinearity(np.multiply(inputs, y) / np.sum(inputs, axis=0))
+        inputs = inputs[..., np.newaxis]
+        w = self.msf(inputs, a, c)
+        w = np.prod(w, axis=1)
+        f = np.sum(a * inputs, axis=1) + r
+        o = w * f / np.sum(w, axis=1, keepdims=True)
+        return self.nonlinearity(o)
