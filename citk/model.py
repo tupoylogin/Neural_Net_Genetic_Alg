@@ -4,7 +4,7 @@ from datetime import datetime
 import autograd.numpy as np
 from tqdm.auto import tqdm
 
-from .layer import BaseLayer, Dense, WeightsParser, Fuzzify, TSKLayer
+from .layer import BaseLayer, Dense, WeightsParser, Fuzzify
 from .functions import GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
 from .optimisers import BaseOptimizer
 from .utils import cast_to_same_shape
@@ -98,30 +98,3 @@ class FFN(object):
             if to_stop:
                 break
         return self, history
-
-
-class ANFIS(FFN):
-    def __init__(
-        self,
-        input_shape: int,
-        num_rules: int,
-        loss: tp.Callable[..., np.ndarray],
-        **kwargs,
-    ) -> None:
-        """
-        Adaptive Neuro Fuzzy Inference System (ANFIS) Network
-        Args:
-            input_shape (int): shape of your `X` variable
-            num_rules (int): number of fuzzy rules to initiate
-            loss (callable): loss function
-        """
-        super().__init__(
-            input_shape=input_shape,
-            layer_specs=[
-                Fuzzify(num_rules, msf=BellMembership),
-                TSKLayer(num_rules),
-                Dense(1, nonlinearity=Linear),
-            ],
-            loss=loss,
-            **kwargs,
-        )
