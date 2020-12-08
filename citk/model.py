@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 from .layer import BaseLayer, Dense, WeightsParser, Fuzzify
 from .functions import GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
 from .optimisers import BaseOptimizer
-from .utils import cast_to_same_shape
+from .utils import gen_batch
 
 
 class FFN(object):
@@ -72,29 +72,30 @@ class FFN(object):
         train_sample: tp.Tuple[np.ndarray],
         validation_sample: tp.Tuple[np.ndarray],
         batch_size: int,
-        iters: tp.Optional[int] = None,
+        epochs: tp.Optional[int] = None,
         verbose: tp.Optional[bool] = None,
     ):
         self._optimiser = optimiser
         verbose = verbose if verbose else False
-        (X, y) = train_sample
-        batch_s = min(batch_size, X.shape[0])
-        iters = iters if iters else 2 * len(X) // batch_s
+        epochs = epochs if epochs else 1
         inst = None
-        history = dict(iteration=[], train_loss=[], validation_loss=[])
-        for i in tqdm(range(iters), desc="Training "):
-            history["iteration"].append(i)
-            batch = np.random.default_rng(42).choice(range(X.shape[0]), batch_s)
-            X_b, y_b = X[batch], y[batch]
-            to_stop, inst, tr_loss = self._optimiser.apply(
-                self.loss, X_b, y_b, self.W_vect, verbose=verbose
-            )
+        history = dict(epoch=[], train_loss=[], validation_loss=[])
+        for i in tqdm(range(epochs), desc="Training "):
+            tr_loss = np.inf
+            to_stop = False
+            for (X,y) in gen_batch(train_sample,batch_size):
+                to_stop, inst, tr_loss = self._optimiser.apply(
+                    self.loss, X, y, self.W_vect, verbose=verbose
+                )
+                self.W_vect = inst
+            self.W_vect = inst
+            
+            history["epoch"].append(i)
             history["train_loss"].append(tr_loss)
             val_loss = self.eval(*validation_sample)[0]
             history["validation_loss"].append(val_loss)
             if verbose:
                 print(f"validation loss - {val_loss}")
-            self.W_vect = inst
             if to_stop:
                 break
         return self, history

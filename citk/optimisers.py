@@ -8,7 +8,6 @@ from autograd import grad
 import numpy as np
 
 from .layer import BaseLayer
-from .utils import cast_to_same_shape
 
 
 class BaseOptimizer:
@@ -179,7 +178,6 @@ class SGDOptimizer(BaseOptimizer):
         self._eta = eta
         self._score = []
         self._tol = kwargs.pop("tol", 1e-2)
-        self._batch_size = kwargs.pop("batch_size", 1)
         self._v_t = []
         super().__init__(**kwargs)
 
@@ -212,16 +210,13 @@ class SGDOptimizer(BaseOptimizer):
         loss_grad = grad(loss)
         if not (len(self._v_t)):
             self._v_t = np.zeros_like(W)
-        rand_subset = np.random.default_rng().choice(
-            range(input_tensor.shape[0]), self._batch_size
-        )
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f"train score - {self._score[-1]}")
         grad_W = np.clip(
-            loss_grad(W, input_tensor[rand_subset], output_tensor[rand_subset]),
-            -1e3,
-            1e3,
+            loss_grad(W, input_tensor, output_tensor),
+            -1e6,
+            1e6,
         )
         grad_W /= np.linalg.norm(grad_W)
         if self._score[-1] <= self._tol:
@@ -243,7 +238,6 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         self._eta = eta
         self._score = []
         self._tol = kwargs.pop("tol", 1e-2)
-        self._batch_size = kwargs.pop("batch_size", 1)
         self._g_prev = None
         self._p_prev = None
         self._k = 0
@@ -277,17 +271,14 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         verbose = kwargs.pop("verbose", False)
         loss_grad = grad(loss)
 
-        rand_subset = np.random.default_rng().choice(
-            range(input_tensor.shape[0]), self._batch_size
-        )
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f"train score - {self._score[-1]}")
 
         g = np.clip(
-            loss_grad(W, input_tensor[rand_subset], output_tensor[rand_subset]),
-            -1e3,
-            1e3,
+            loss_grad(W, input_tensor, output_tensor),
+            -1e6,
+            1e6,
         )
         d = W.shape[0]
 

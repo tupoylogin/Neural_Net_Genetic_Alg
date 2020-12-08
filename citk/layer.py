@@ -5,8 +5,6 @@ from autograd.scipy.signal import convolve, compute_conv_size
 from autograd.differential_operators import elementwise_grad
 
 from .functions import GaussianRBF, ReLU, Linear
-from .utils import weights_on_batch
-
 
 class WeightsParser(object):
     """A helper class to index into a parameter vector."""
@@ -54,7 +52,7 @@ class BaseLayer:
         raise NotImplementedError
 
     def __str__(self):
-        return self.__class__.__name__ + str(self.number)
+        return self.__class__.__name__ + f'_{self.number}'
 
 
 class Conv2D(BaseLayer):
@@ -149,32 +147,38 @@ class Dense(BaseLayer):
 
 
 class RBFDense(BaseLayer):
-    def __init__(self, size: int):
+    def __init__(self, hidden: int, out: int):
         """
         Gaussian RBF Dense Layer
 
         Args:
-            size (int): numberof units.
+            hidden (int): numberof units.
             nonlinearity (callable): activation function.
         """
-        self.size = size
+        self.hidden = hidden
+        self.size = out
         self.rbf = GaussianRBF
         super().__init__(nonlinearity=Linear)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
-        self.parser.add_weights("mu", (input_size, self.size))
-        self.parser.add_weights("sigma", (self.size,))
+        self.parser.add_weights("mu", (input_size, self.hidden))
+        self.parser.add_weights("sigma", (self.hidden,))
+        self.parser.add_weights("params", (self.hidden, self.size))
+        self.parser.add_weights("biases", (self.size,))
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
-        mu = self.parser.get(param_vector, "mu")
-        sigma = self.parser.get(param_vector, "sigma")
+        mu = self.parser.get(param_vector, "mu")[np.newaxis, :]
+        sigma = self.parser.get(param_vector, "sigma")[np.newaxis, :]
+        params = self.parser.get(param_vector, "params")
+        biases = self.parser.get(param_vector, "biases")
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
-        inputs = np.tile(np.expand_dims(inputs[:, :], axis=-1), self.size)
-        return self.nonlinearity(self.rbf(inputs, mu, sigma))
+        inputs = inputs[..., np.newaxis]
+        rbf = self.rbf(inputs, mu, sigma)
+        return self.nonlinearity(np.dot(rbf, params) + biases)
 
 
 class Fuzzify(BaseLayer):

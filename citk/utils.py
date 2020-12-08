@@ -1,14 +1,15 @@
+import typing as tp
+from itertools import repeat
 import numpy as np
 
+def gen_batch(dataset: tp.Tuple[np.ndarray, np.ndarray], batch_size: int):
+    start_position = 0
+    X, y = dataset
+    while start_position<len(X):
+        to_position = min(start_position + batch_size, len(X))
+        yield (X[start_position: to_position],
+            y[start_position: to_position])
+        start_position += to_position
 
-def cast_to_same_shape(input: np.ndarray, target: np.ndarray) -> None:
-    try:
-        input.reshape(target.shape)
-    except:
-        raise Exception(
-            f"Can't cast `input` (shape = {input.shape}) to `target` (shape = {target.shape})"
-        )
 
 
-def weights_on_batch(weights: np.ndarray, X_batch: np.ndarray) -> np.ndarray:
-    return np.array([np.array([w * X for w in weights.T]) for X in X_batch])
