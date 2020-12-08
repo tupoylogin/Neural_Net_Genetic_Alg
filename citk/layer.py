@@ -178,7 +178,12 @@ class RBFDense(BaseLayer):
 
 
 class Fuzzify(BaseLayer):
-    def __init__(self, num_rules: int, msf: tp.Callable[[tp.Any], np.ndarray]):
+    def __init__(
+        self,
+        num_rules: int,
+        msf: tp.Callable[[tp.Any], np.ndarray],
+        nonlinearity: tp.Callable[[tp.Any], np.ndarray] = Linear,
+    ):
         """
         Fuzzification Layer
 
@@ -188,7 +193,7 @@ class Fuzzify(BaseLayer):
         """
         self.size = num_rules
         self.msf = msf
-        super().__init__(nonlinearity=Linear)
+        super().__init__(nonlinearity=nonlinearity)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
@@ -199,7 +204,6 @@ class Fuzzify(BaseLayer):
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
-        inp_size = inputs.shape[-1]
         a = self.parser.get(param_vector, "a")[np.newaxis, :]
         c = self.parser.get(param_vector, "c")[np.newaxis, :]
         r = self.parser.get(param_vector, "r")[np.newaxis, :]

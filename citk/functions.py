@@ -22,6 +22,10 @@ def Tanh(x: np.ndarray) -> np.ndarray:
     return np.tanh(x)
 
 
+def Sum(x: np.ndarray) -> np.ndarray:
+    return np.sum(x, axis=-1, keepdims=True)
+
+
 def LogSigmoid(x: np.ndarray) -> np.ndarray:
     return np.clip(x - np.logaddexp(0, x), 1e-6, 1e6)
 
