@@ -261,6 +261,7 @@ class GMDHDense(BaseLayer):
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         input_size = self.calc_input_shape(input_size, self.degree)
+        print(input_size)
         self.parser.add_weights("params", (input_size, self.size))
         self.parser.add_weights("biases", (self.size,))
         return self.parser.N, (self.size,)
@@ -275,4 +276,5 @@ class GMDHDense(BaseLayer):
     
     @staticmethod
     def calc_input_shape(input_size: int, deg: int):
-        return sum([input_size**i for i in range(deg)])
+        print()
+        return sum([input_size**i for i in range(1, deg+1)])
