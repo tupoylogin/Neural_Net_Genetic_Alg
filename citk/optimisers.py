@@ -213,8 +213,11 @@ class SGDOptimizer(BaseOptimizer):
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f"train score - {self._score[-1]}")
-        grad_W = np.clip(loss_grad(W, input_tensor, output_tensor), -1e6, 1e6,)
-        grad_W /= np.linalg.norm(grad_W)
+        grad_W = np.clip(
+            loss_grad(W, input_tensor, output_tensor),
+            -1e6,
+            1e6,
+        )
         if self._score[-1] <= self._tol:
             to_stop = True
         self._v_t = self._alpha * self._v_t + (1.0 - self._alpha) * grad_W

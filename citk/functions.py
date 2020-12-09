@@ -191,7 +191,7 @@ def GaussianRBF(x: np.ndarray, c: np.ndarray, r: np.ndarray) -> np.ndarray:
     Returns
     -------
     res : ndarray
-        res = np.exp(-||x-c||**2/(2/*r**2))
+        res = np.exp(-||x-c||**2/(2*r**2)).
 
     """
     return np.exp(

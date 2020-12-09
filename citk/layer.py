@@ -167,19 +167,19 @@ class RBFDense(BaseLayer):
         self.parser.add_weights("mu", (input_size, self.hidden))
         self.parser.add_weights("sigma", (self.hidden,))
         self.parser.add_weights("params", (self.hidden, self.size))
-        self.parser.add_weights("biases", (self.size,))
+        #self.parser.add_weights("biases", (self.size,))
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
         mu = self.parser.get(param_vector, "mu")[np.newaxis, :]
         sigma = self.parser.get(param_vector, "sigma")[np.newaxis, :]
         params = self.parser.get(param_vector, "params")
-        biases = self.parser.get(param_vector, "biases")
+        #biases = self.parser.get(param_vector, "biases")
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         inputs = inputs[..., np.newaxis]
         rbf = self.rbf(inputs, mu, sigma)
-        return self.nonlinearity(np.dot(rbf, params) + biases)
+        return self.nonlinearity(np.dot(rbf, params))
 
 
 class Fuzzify(BaseLayer):
