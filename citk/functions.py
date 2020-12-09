@@ -194,18 +194,20 @@ def GaussianRBF(x: np.ndarray, c: np.ndarray, r: np.ndarray) -> np.ndarray:
         res = np.exp(-||x-c||**2/(2/*r**2))
 
     """
-    return np.exp(-0.5 * np.power(np.linalg.norm(x - c, 2, axis=1), 2) / np.clip(np.power(r, 2), EPS, None))
+    return np.exp(
+        -0.5
+        * np.power(np.linalg.norm(x - c, 2, axis=1), 2)
+        / np.clip(np.power(r, 2), EPS, None)
+    )
 
 
 def BellMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarray:
-    return np.clip(1 / (1 + (np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), 
-        EPS,
-        None
+    return np.clip(
+        1 / (1 + (np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
     )
 
 
 def GaussianMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarray:
-    return np.clip(np.exp(-(np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), 
-        EPS,
-        None
+    return np.clip(
+        np.exp(-(np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
     )

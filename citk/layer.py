@@ -6,6 +6,7 @@ from autograd.differential_operators import elementwise_grad
 
 from .functions import GaussianRBF, ReLU, Linear
 
+
 class WeightsParser(object):
     """A helper class to index into a parameter vector."""
 
@@ -52,7 +53,7 @@ class BaseLayer:
         raise NotImplementedError
 
     def __str__(self):
-        return self.__class__.__name__ + f'_{self.number}'
+        return self.__class__.__name__ + f"_{self.number}"
 
 
 class Conv2D(BaseLayer):

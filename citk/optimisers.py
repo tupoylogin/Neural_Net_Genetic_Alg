@@ -213,11 +213,7 @@ class SGDOptimizer(BaseOptimizer):
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f"train score - {self._score[-1]}")
-        grad_W = np.clip(
-            loss_grad(W, input_tensor, output_tensor),
-            -1e6,
-            1e6,
-        )
+        grad_W = np.clip(loss_grad(W, input_tensor, output_tensor), -1e6, 1e6,)
         grad_W /= np.linalg.norm(grad_W)
         if self._score[-1] <= self._tol:
             to_stop = True
@@ -275,11 +271,7 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         if verbose:
             print(f"train score - {self._score[-1]}")
 
-        g = np.clip(
-            loss_grad(W, input_tensor, output_tensor),
-            -1e6,
-            1e6,
-        )
+        g = np.clip(loss_grad(W, input_tensor, output_tensor), -1e6, 1e6,)
         d = W.shape[0]
 
         if (self._k == 0) or (d % self._k == 0):

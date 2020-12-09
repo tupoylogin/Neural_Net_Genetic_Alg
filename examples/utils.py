@@ -1,9 +1,18 @@
+import random
+import os
+
 import numpy as np
 
 from sklearn.datasets import load_boston
 from sklearn.preprocessing import QuantileTransformer, StandardScaler
 from sklearn.model_selection import train_test_split
 from matplotlib import pyplot as plt
+
+
+def seed_everything(seed_value: int = 42):
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    os.environ["PYTHONHASHSEED"] = str(seed_value)
 
 
 def continious_stratification(
@@ -25,7 +34,9 @@ def continious_stratification(
     )
 
 
-def get_and_process_boston_dataset(random_state: int = 42):
+def get_and_process_boston_dataset(
+    random_state: int = 42, normalize_y: bool = True, normalize_X: bool = True
+):
     # Load
     X, y = load_boston(return_X_y=True)
     # Split into train/test
@@ -33,30 +44,40 @@ def get_and_process_boston_dataset(random_state: int = 42):
         X, y, random_state=random_state
     )
     # Normalize target
-    tgt_trans = QuantileTransformer(
-        n_quantiles=300, output_distribution="normal", random_state=random_state
-    )
-    y_train = tgt_trans.fit_transform(y_train[:, None])
-    y_test = tgt_trans.transform(y_test[:, None])
+    if normalize_y:
+        tgt_trans = QuantileTransformer(
+            n_quantiles=300, output_distribution="normal", random_state=random_state
+        )
+        y_train = tgt_trans.fit_transform(y_train[:, None])
+        y_test = tgt_trans.transform(y_test[:, None])
+    else:
+        y_train = y_train[:, None]
+        y_test = y_test[:, None]
     # Normalize features
-    feature_trans = StandardScaler()
-    X_train = feature_trans.fit_transform(X_train)
-    X_test = feature_trans.transform(X_test)
+    if normalize_X:
+        feature_trans = StandardScaler()
+        X_train = feature_trans.fit_transform(X_train)
+        X_test = feature_trans.transform(X_test)
 
     return X_train, X_test, y_train, y_test
 
 
 def visualise_boston(
-    X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray
+    X_train: np.ndarray,
+    X_test: np.ndarray,
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    only_target: bool = True,
 ):
-    for i in range(X_train.shape[1]):
-        plt.title(f"Train feature {i}")
-        plt.hist(X_train[:, i])
-        plt.show()
+    if not only_target:
+        for i in range(X_train.shape[1]):
+            plt.title(f"Train feature {i}")
+            plt.hist(X_train[:, i])
+            plt.show()
 
-        plt.title(f"Test feature {i}")
-        plt.hist(X_test[:, i])
-        plt.show()
+            plt.title(f"Test feature {i}")
+            plt.hist(X_test[:, i])
+            plt.show()
 
     plt.title("Train target")
     plt.hist(y_train[:, 0])

@@ -1,5 +1,6 @@
 import typing as tp
 from datetime import datetime
+from copy import deepcopy
 
 import autograd.numpy as np
 from tqdm.auto import tqdm
@@ -39,10 +40,12 @@ class FFN(object):
             int(datetime.utcnow().timestamp() * 1e5)
         ).normal(size=(self.parser.N,))
 
-    def loss(self, W_vect: np.ndarray, X: np.ndarray, y: np.ndarray):
-        if self.regularization == "l2":
+    def loss(
+        self, W_vect: np.ndarray, X: np.ndarray, y: np.ndarray, omit_reg: bool = False
+    ):
+        if self.regularization == "l2" and not omit_reg:
             reg = np.power(np.linalg.norm(W_vect, 2), 2)
-        elif self.regularization == "l1":
+        elif self.regularization == "l1" and not omit_reg:
             reg = np.linalg.norm(W_vect, 1)
         else:
             reg = 0.0
@@ -59,7 +62,7 @@ class FFN(object):
         return cur_units
 
     def eval(self, input: np.ndarray, output: np.ndarray) -> float:
-        return self.loss(self.W_vect, input, output)
+        return self.loss(self.W_vect, input, output, omit_reg=True)
 
     def frac_err(self, X, T):
         return np.mean(
@@ -74,28 +77,62 @@ class FFN(object):
         batch_size: int,
         epochs: tp.Optional[int] = None,
         verbose: tp.Optional[bool] = None,
+        load_best_model_on_end: bool = True,
+        minimize_metric: bool = True,
     ):
         self._optimiser = optimiser
+
         verbose = verbose if verbose else False
         epochs = epochs if epochs else 1
+
         inst = None
+        best_inst = None
+        best_score = np.inf if minimize_metric else -np.inf
+        best_epoch = 0
+
         history = dict(epoch=[], train_loss=[], validation_loss=[])
+
         for i in tqdm(range(epochs), desc="Training "):
+
+            tr_accum_loss = []
             tr_loss = np.inf
             to_stop = False
-            for (X,y) in gen_batch(train_sample,batch_size):
+
+            for (X, y) in gen_batch(train_sample, batch_size):
                 to_stop, inst, tr_loss = self._optimiser.apply(
                     self.loss, X, y, self.W_vect, verbose=verbose
                 )
                 self.W_vect = inst
-            self.W_vect = inst
-            
+                tr_accum_loss.append(tr_loss)
+
+            tr_accum_loss = np.mean(tr_accum_loss)
+
             history["epoch"].append(i)
-            history["train_loss"].append(tr_loss)
+            history["train_loss"].append(tr_accum_loss)
+
             val_loss = self.eval(*validation_sample)[0]
             history["validation_loss"].append(val_loss)
+
+            if minimize_metric and val_loss < best_score:
+                best_score = val_loss
+                best_inst = deepcopy(self.W_vect)
+                best_epoch = i
+            elif (not minimize_metric) and val_loss > best_score:
+                best_score = val_loss
+                best_inst = deepcopy(self.W_vect)
+                best_epoch = i
+            else:
+                pass
+
             if verbose:
                 print(f"validation loss - {val_loss}")
             if to_stop:
                 break
+
+        if load_best_model_on_end:
+            self.W_vect = best_inst
+            if verbose:
+                print(f"best validation loss - {best_score}")
+                print(f"best epoch - {best_epoch}")
+
         return self, history
