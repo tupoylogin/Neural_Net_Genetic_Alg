@@ -1,4 +1,5 @@
 import typing as tp
+from itertools import product
 
 import autograd.numpy as np
 
@@ -211,3 +212,12 @@ def GaussianMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarra
     return np.clip(
         np.exp(-(np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
     )
+
+def Poly(x: np.ndarray, deg: int):
+    indices_to_mul = sum([list(product(range(x.shape[1]), repeat=i)) for i in range(2, deg+1)], [])
+    for ind in indices_to_mul:
+        pf = np.prod(x[:, ind], axis=1)[:, np.newaxis]
+        x = np.append(x, pf, axis=1)
+    return x
+
+

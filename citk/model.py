@@ -31,14 +31,14 @@ class FFN(object):
         self.reg_coef = kwargs.get("reg_coef", 0)
         self.layer_specs = layer_specs
         cur_shape = input_shape
+        W_vect = np.array([])
         for num, layer in enumerate(self.layer_specs):
             layer.number = num
             N_weights, cur_shape = layer.build_weights_dict(cur_shape)
             self.parser.add_weights(str(layer), (N_weights,))
+            W_vect = np.append(W_vect, layer.initializer(size=(N_weights,)))
         self._loss = loss
-        self.W_vect = 0.1 * np.random.default_rng(
-            int(datetime.utcnow().timestamp() * 1e5)
-        ).normal(size=(self.parser.N,))
+        self.W_vect = 0.1 * W_vect
 
     def loss(
         self, W_vect: np.ndarray, X: np.ndarray, y: np.ndarray, omit_reg: bool = False

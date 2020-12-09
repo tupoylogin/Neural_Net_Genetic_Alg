@@ -1,11 +1,14 @@
+from datetime import datetime
+from itertools import product
 import typing as tp
 
 import autograd.numpy as np
 from autograd.scipy.signal import convolve, compute_conv_size
 from autograd.differential_operators import elementwise_grad
 
-from .functions import GaussianRBF, ReLU, Linear
+from .functions import GaussianRBF, ReLU, Linear, Poly
 
+SEED = int(datetime.utcnow().timestamp() * 1e5)
 
 class WeightsParser(object):
     """A helper class to index into a parameter vector."""
@@ -34,6 +37,7 @@ class BaseLayer:
         self.parser = WeightsParser()
         self.nonlinearity = nonlinearity
         self.number = kwargs.get("number", 0)
+        self.initializer = kwargs.get("init", np.random.default_rng(SEED).normal)
 
     @property
     def parser(self):
@@ -63,11 +67,12 @@ class Conv2D(BaseLayer):
         num_filters: int,
         mode: str,
         nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs
     ):
         self.kernel_shape = kernel_shape
         self.num_filters = num_filters
         self._mode = mode
-        super().__init__(nonlinearity=nonlinearity)
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
         # Input dimensions:  [data, color_in, y, x]
@@ -96,9 +101,14 @@ class Conv2D(BaseLayer):
 
 
 class MaxPool(BaseLayer):
-    def __init__(self, pool_shape, nonlinearity: tp.Callable[[tp.Any], np.ndarray]):
+    def __init__(
+        self, 
+        pool_shape,
+        nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs
+    ):
         self.pool_shape = pool_shape
-        super().__init__(nonlinearity=nonlinearity)
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
         # input_shape dimensions: [color, y, x]
@@ -121,7 +131,12 @@ class MaxPool(BaseLayer):
 
 
 class Dense(BaseLayer):
-    def __init__(self, size, nonlinearity: tp.Callable[[tp.Any], np.ndarray]):
+    def __init__(
+        self,
+        size,
+        nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs
+    ):
         """
         Dense Layer
 
@@ -130,7 +145,7 @@ class Dense(BaseLayer):
             nonlinearity (callable): activation function.
         """
         self.size = size
-        super().__init__(nonlinearity=nonlinearity)
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
@@ -148,7 +163,7 @@ class Dense(BaseLayer):
 
 
 class RBFDense(BaseLayer):
-    def __init__(self, hidden: int, out: int):
+    def __init__(self, hidden: int, out: int, **kwargs):
         """
         Gaussian RBF Dense Layer
 
@@ -159,7 +174,7 @@ class RBFDense(BaseLayer):
         self.hidden = hidden
         self.size = out
         self.rbf = GaussianRBF
-        super().__init__(nonlinearity=Linear)
+        super().__init__(nonlinearity=Linear, **kwargs)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
@@ -188,6 +203,7 @@ class Fuzzify(BaseLayer):
         num_rules: int,
         msf: tp.Callable[[tp.Any], np.ndarray],
         nonlinearity: tp.Callable[[tp.Any], np.ndarray] = Linear,
+        **kwargs
     ):
         """
         Fuzzification Layer
@@ -198,7 +214,7 @@ class Fuzzify(BaseLayer):
         """
         self.size = num_rules
         self.msf = msf
-        super().__init__(nonlinearity=nonlinearity)
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
         # Input shape is anything (all flattened)
@@ -220,3 +236,43 @@ class Fuzzify(BaseLayer):
         f = np.sum(a * inputs, axis=1) + r
         o = w * f / np.sum(w, axis=1, keepdims=True)
         return self.nonlinearity(o)
+
+class GMDHDense(BaseLayer):
+    def __init__(
+        self,
+        size,
+        degree,
+        nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs
+    ):
+        """
+        Dense Layer for GMDH-Type networks
+
+        Args:
+            size (int): number of units
+            degree (int): Chebyshev's polynome degree.
+            nonlinearity (callable): activation function.
+        """
+        self.size = size
+        self.degree = degree
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        input_size = self.calc_input_shape(input_size, self.degree)
+        self.parser.add_weights("params", (input_size, self.size))
+        self.parser.add_weights("biases", (self.size,))
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        params = self.parser.get(param_vector, "params")
+        biases = self.parser.get(param_vector, "biases")
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = Poly(inputs, self.degree)
+        return self.nonlinearity(np.dot(inputs[:, :], params) + biases)
+    
+    @staticmethod
+    def calc_input_shape(input_size: int, deg: int):
+        return sum([input_size**i for i in range(deg)])
