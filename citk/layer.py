@@ -263,8 +263,8 @@ class GMDHLayer(BaseLayer):
         input_size = nCr(input_size, 2)
 
         self.input_size = input_size
-        self.parser.add_weights("params", (1, 1, self.n_weights))
-        self.parser.add_weights("biases", (1, 1))
+        self.parser.add_weights("params", (1, input_size, self.n_weights))
+        self.parser.add_weights("biases", (1, input_size))
         return self.parser.N, (input_size,)
 
     def _compute_grouped_arguments(self, inputs):
