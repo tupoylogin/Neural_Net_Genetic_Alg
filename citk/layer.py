@@ -268,23 +268,29 @@ class GMDHLayer(BaseLayer):
         return self.parser.N, (input_size,)
 
     def _compute_grouped_arguments(self, inputs):
-        grouped_inputs = np.zeros((inputs.shape[0], self.input_size, self.n_weights))
         grouped_indices = list(combinations(list(range(inputs.shape[1])), 2))
-        for new_ids, group_ids in enumerate(grouped_indices):
+        grouped_inputs = []
+        for group_ids in grouped_indices:
             group_ids = list(group_ids)
-            grouped_inputs[:, new_ids, :2] = inputs[:, group_ids]
+            temp_inputs = [inputs[:, group_ids]]
             if self.n_weights > 2:
-                grouped_inputs[:, new_ids, 2] = (
-                    inputs[:, group_ids[0]] * inputs[:, group_ids[1]]
-                )
+                x_i_m_x_j = inputs[:, group_ids[0]] * inputs[:, group_ids[1]]
+                temp_inputs.append(x_i_m_x_j[..., np.newaxis])
             if self.n_weights > 3:
-                grouped_inputs[:, new_ids, 3] = inputs[:, group_ids[0]] ** 2
-                grouped_inputs[:, new_ids, 4] = inputs[:, group_ids[1]] ** 2
+                x_i_square = inputs[:, group_ids[0]] ** 2
+                x_j_square = inputs[:, group_ids[1]] ** 2
+                temp_inputs.append(x_i_square[..., np.newaxis])
+                temp_inputs.append(x_j_square[..., np.newaxis])
+
+            grouped_inputs.append(np.concatenate(temp_inputs, axis=-1))
+        grouped_inputs = np.stack(grouped_inputs, axis=1)
         return grouped_inputs
 
     def forward(self, inputs, param_vector):
         params = self.parser.get(param_vector, "params")
         biases = self.parser.get(param_vector, "biases")
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         inputs = self._compute_grouped_arguments(inputs)
         outputs = np.sum(inputs * params, axis=-1) + biases
         return self.nonlinearity(outputs)
