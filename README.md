@@ -34,6 +34,8 @@ Test/Train splitting:
 
 [Data preparation code](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/utils.py#L37)
 
+Metric - MSE on normalized data
+
 |Exepriment name                 |Train score                     |Test score                      |
 |--------------------------------|:------------------------------:|:------------------------------:|
 |MLP+Genetic                     |0.455                           |0.645                           |
