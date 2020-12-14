@@ -22,6 +22,18 @@ This is an ultimate package for SOTA CI algorithmes
 
 # Result Table
 
+All experiments are carried on [Boston dataset](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_boston.html)
+
+Using such preprocessing:
+- Quantile Transform on Target (`n_quantiles=300, output_distribution="normal"`)
+- Standard Scaling of features 
+
+Test/Train splitting:
+- test size - 20%
+- use histogram bins stratification
+
+[Data preparation code](https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/utils.py#L37)
+
 |Exepriment name                 |Train score                     |Test score                      |
 |--------------------------------|:------------------------------:|:------------------------------:|
 |MLP+Genetic                     |0.455                           |0.645                           |
