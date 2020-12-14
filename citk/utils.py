@@ -1,5 +1,6 @@
 import typing as tp
 import inspect
+import math
 from itertools import repeat
 import numpy as np
 
@@ -11,3 +12,8 @@ def gen_batch(dataset: tp.Tuple[np.ndarray, np.ndarray], batch_size: int):
         to_position = min(start_position + batch_size, len(X))
         yield (X[start_position:to_position], y[start_position:to_position])
         start_position = to_position
+
+
+def nCr(n, r):
+    f = math.factorial
+    return int(f(n) / f(r) / f(n - r))
