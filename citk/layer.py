@@ -238,11 +238,12 @@ class GMDHLayer(BaseLayer):
         self, poli_type: str, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
     ):
         """
-        Dense Layer for GMDH-Type networks
+        GMDH Layer
 
         Args:
-            size (int): number of units
-            degree (int): Chebyshev's polynome degree.
+            poli_type (str): type of GMDH polinom. 
+                             Possible - linear , partial_quadratic , quadratic.
+                             If other selected ValueError will occur.
             nonlinearity (callable): activation function.
         """
         if poli_type == "linear":
@@ -294,6 +295,86 @@ class GMDHLayer(BaseLayer):
         inputs = self._compute_grouped_arguments(inputs)
         outputs = np.sum(inputs * params, axis=-1) + biases
         return self.nonlinearity(outputs)
+
+
+class FuzzyGMDHLayer(BaseLayer):
+    def __init__(
+        self,
+        poli_type: str,
+        nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        msf: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs,
+    ):
+        """
+        Fuzzy GMDH Layer
+        Incorporates GMDH and Fuzzify functionalities 
+
+        Args:
+            poli_type (str): type of GMDH polinom. 
+                             Possible - linear , partial_quadratic , quadratic.
+                             If other selected ValueError will occur.
+            msf (callable): Fuzzy membership function 
+            nonlinearity (callable): activation function.
+        """
+        if poli_type == "linear":
+            self.n_weights = 2
+        elif poli_type == "partial_quadratic":
+            self.n_weights = 3
+        elif poli_type == "quadratic":
+            self.n_weights = 5
+        else:
+            raise ValueError("Incorrect poli_type")
+
+        self.msf = msf
+
+        self.input_size = None
+        super().__init__(nonlinearity=nonlinearity, **kwargs)
+
+    def build_weights_dict(self, input_shape):
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        input_size = nCr(input_size, 2)
+
+        self.input_size = input_size
+        self.parser.add_weights("a", (1, input_size, self.n_weights))
+        self.parser.add_weights("c", (1, input_size, self.n_weights))
+        self.parser.add_weights("r", (1, input_size))
+        return self.parser.N, (input_size,)
+
+    def _compute_grouped_arguments(self, inputs):
+        grouped_indices = list(combinations(list(range(inputs.shape[1])), 2))
+        grouped_inputs = []
+        for group_ids in grouped_indices:
+            group_ids = list(group_ids)
+            temp_inputs = [inputs[:, group_ids]]
+            if self.n_weights > 2:
+                x_i_m_x_j = inputs[:, group_ids[0]] * inputs[:, group_ids[1]]
+                temp_inputs.append(x_i_m_x_j[..., np.newaxis])
+            if self.n_weights > 3:
+                x_i_square = inputs[:, group_ids[0]] ** 2
+                x_j_square = inputs[:, group_ids[1]] ** 2
+                temp_inputs.append(x_i_square[..., np.newaxis])
+                temp_inputs.append(x_j_square[..., np.newaxis])
+
+            grouped_inputs.append(np.concatenate(temp_inputs, axis=-1))
+        grouped_inputs = np.stack(grouped_inputs, axis=1)
+        return grouped_inputs
+
+    def forward(self, inputs, param_vector):
+        a = self.parser.get(param_vector, "a")
+        c = self.parser.get(param_vector, "c")
+        r = self.parser.get(param_vector, "r")
+
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = self._compute_grouped_arguments(inputs)
+
+        w = self.msf(inputs, a, c)
+        w = np.prod(w, axis=-1)
+        f = np.sum(a * inputs, axis=-1) + r
+        o = w * f / np.sum(w, axis=-1, keepdims=True)
+
+        return self.nonlinearity(o)
 
 
 class GMDHDense(BaseLayer):
