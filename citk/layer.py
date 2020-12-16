@@ -6,8 +6,8 @@ import autograd.numpy as np
 from autograd.scipy.signal import convolve, compute_conv_size
 from autograd.differential_operators import elementwise_grad
 
-from .functions import GaussianRBF, ReLU, Linear, Poly
-from .utils import nCr
+from .functions import GaussianRBF, ReLU, Linear, Poly, Sigmoid, Tanh
+from .utils import concat_and_multiply, nCr
 
 SEED = int(datetime.utcnow().timestamp() * 1e5)
 POSSIBLE_POLI_TYPES = ["linear", "partial_quadratic", "quadratic"]
@@ -355,7 +355,6 @@ class FuzzyGMDHLayer(BaseLayer):
                 x_j_square = inputs[:, group_ids[1]] ** 2
                 temp_inputs.append(x_i_square[..., np.newaxis])
                 temp_inputs.append(x_j_square[..., np.newaxis])
-
             grouped_inputs.append(np.concatenate(temp_inputs, axis=-1))
         grouped_inputs = np.stack(grouped_inputs, axis=1)
         return grouped_inputs
@@ -414,3 +413,96 @@ class GMDHDense(BaseLayer):
     def calc_input_shape(input_size: int, deg: int):
         print()
         return sum([input_size ** i for i in range(1, deg + 1)])
+
+class SimpleRNN(BaseLayer):
+    def __init__(self, units, size, **kwargs):
+        """
+        RNN Layer
+
+        Args:
+            units (int): number of units.
+            size: output size
+        """
+        self.units = units
+        self.size = size
+        super().__init__(nonlinearity=Tanh, **kwargs)
+
+    @staticmethod
+    def _update_rnn(param, input, hiddens, nonlinearity):
+         return nonlinearity(concat_and_multiply(param, input, hiddens))
+
+    def build_weights_dict(self, input_shape):
+        self.parser.add_weights("init_hiddens", (1, self.units))
+        self.parser.add_weights("change", (input_shape + self.units + 1, self.units))
+        self.parser.add_weights("predict", (self.units + 1, self.size))
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        init_hiddens = self.parser.get(param_vector, "init_hiddens")
+        change = self.parser.get(param_vector, "change")
+        predict = self.parser.get(param_vector, "predict")
+        num_sequences = inputs.shape[1]
+        hiddens = np.repeat(init_hiddens, num_sequences, axis=0)
+        output = [self.nonlinearity(concat_and_multiply(predict, hiddens))]
+
+        for input in inputs:  # Iterate over time steps.
+            hiddens = self._update_rnn(change, input, hiddens, self.nonlinearity)
+            output.append(self.nonlinearity(concat_and_multiply(predict, hiddens)))
+        return output
+    
+class LSTM(BaseLayer):
+    def __init__(self, units, size, **kwargs):
+        """
+        LSTM Layer
+
+        Args:
+            units (int): number of units.
+            size: output size
+        """
+        self.units = units
+        self.size = size
+        super().__init__(nonlinearity=Tanh, **kwargs)
+
+    @staticmethod
+    def _update_rnn(params, input, hiddens, cells, nonlinearity):
+        change  = nonlinearity(concat_and_multiply(params['change'], input, hiddens))
+        forget  = Sigmoid(concat_and_multiply(params['forget'], input, hiddens))
+        ingate  = Sigmoid(concat_and_multiply(params['ingate'], input, hiddens))
+        outgate = Sigmoid(concat_and_multiply(params['outgate'], input, hiddens))
+        cells   = cells * forget + ingate * change
+        hiddens = outgate * nonlinearity(cells)
+        return hiddens, cells
+
+    def build_weights_dict(self, input_shape):
+        self.parser.add_weights("init_cells", (1, self.units))
+        self.parser.add_weights("init_hiddens", (1, self.units))
+        self.parser.add_weights("change", (input_shape + self.units + 1, self.units))
+        self.parser.add_weights("forget", (input_shape + self.units + 1, self.units))
+        self.parser.add_weights("ingate", (input_shape + self.units + 1, self.units))
+        self.parser.add_weights("outgate", (input_shape + self.units + 1, self.units))
+        self.parser.add_weights("predict", (self.units + 1, self.size))
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        init_hiddens = self.parser.get(param_vector, "init_hiddens")
+        init_cells = self.parser.get(param_vector, "init_cells")
+        change = self.parser.get(param_vector, "change")
+        forgate = self.parser.get(param_vector, "forgate")
+        ingate = self.parser.get(param_vector, "ingate")
+        outgate = self.parser.get(param_vector, "outgate")
+        predict = self.parser.get(param_vector, "predict")
+        num_sequences = inputs.shape[1]
+        dictp = {'change': change,
+                'forgate': forgate,
+                'ingate': ingate,
+                'outgate': outgate}
+        hiddens = np.repeat(init_hiddens, num_sequences, axis=0)
+        cells = np.repeat(init_cells, num_sequences, axis=0)
+
+        output = [self.nonlinearity(concat_and_multiply(predict, hiddens))]
+
+        for input in inputs:  # Iterate over time steps.
+            hiddens, cells = self._update_rnn(dictp, input, hiddens, cells, self.nonlinearity)
+            output.append(self.nonlinearity(concat_and_multiply(predict, hiddens)))
+
+        return output

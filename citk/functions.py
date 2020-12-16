@@ -1,5 +1,5 @@
 import typing as tp
-from itertools import product
+from itertools import combinations, combinations_with_replacement
 
 import autograd.numpy as np
 
@@ -214,11 +214,22 @@ def GaussianMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarra
     )
 
 
-def Poly(x: np.ndarray, deg: int):
-    indices_to_mul = sum(
-        [list(product(range(x.shape[1]), repeat=i)) for i in range(2, deg + 1)], []
-    )
-    for ind in indices_to_mul:
-        pf = np.prod(x[:, ind], axis=1)[:, np.newaxis]
-        x = np.append(x, pf, axis=1)
-    return x
+def Poly(x: np.ndarray, deg: int, type: tp.Optional[str] = 'full'):
+    inp_size = x.shape[1]
+    X_p = np.empty(x.shape)
+    #arrange every pair of input vectors
+    indices_n_wise = combinations(range(inp_size),2)
+    if deg <2 :
+        for idx in indices_n_wise:
+            X_p = np.append(x[:, idx], axis=1)
+    else:
+        for idx in indices_n_wise:
+            #full degree polymone
+            indices_to_mul = sum([list(combinations_with_replacement(idx, repeat=i)) for i in range(2, deg+1)], [])
+            if type=='partial':
+                #partial degree polynome
+                indices_to_mul = filter(lambda x: len(set(x))>1, indices_to_mul)
+            for ind in indices_to_mul:
+                pf = np.prod(x[:, ind], axis=1)[:, np.newaxis]
+                X_p = np.append(X_p, pf, axis=1)
+    return X_p
