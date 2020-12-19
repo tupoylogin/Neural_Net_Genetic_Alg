@@ -13,13 +13,13 @@ def ReLU(x: np.ndarray) -> np.ndarray:
     Parameters
     ----------
 
-    x : ndarray
-        Input array.
+    :param x: Input array.
+    :type x: np.ndarray
 
     Returns
     -------
-    res : ndarray
-        Array of element-wise maximum(0, x_i) for all x_i in a.
+    :return: Array of element-wise maximum(0, x_i) for all x_i in a.
+    :rtype: np.ndarray
 
     See Also
     --------
@@ -27,9 +27,9 @@ def ReLU(x: np.ndarray) -> np.ndarray:
     Sigmoid : sigmoid activation function.
     Tanh : hyperbolic tangent activation function.
  
-    Notes
+    Note
     -----
-    When scalar is passed, scalar is returned, so it is recommended to conert scalar into 1-d array instead.
+    When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.
 
     Examples
     --------
@@ -53,13 +53,13 @@ def Linear(x: np.ndarray) -> np.ndarray:
     Parameters
     ----------
 
-    x : ndarray
-        Input Array.
+    :param x: Input array.
+    :type x: np.ndarray
 
     Returns
     -------
-    res : ndarray
-        Copy of input.
+    :return: Copy of input.
+    :rtype: np.ndarray
 
     See Also
     --------
@@ -67,9 +67,9 @@ def Linear(x: np.ndarray) -> np.ndarray:
     Sigmoid : sigmoid activation function.
     Tanh : hyperbolic tangent activation function.
 
-    Notes
+    Note
     -----
-    When scalar is passed, scalar is returned, so it is recommended to conert scalar into 1-d array instead.
+    When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.
 
     Examples
     --------
@@ -93,13 +93,13 @@ def Sigmoid(x: np.ndarray) -> np.ndarray:
     Parameters
     ----------
 
-    x : ndarray
-        Input Array.
+    :param x: Input array.
+    :type x: np.ndarray
 
     Returns
     -------
-    res : ndarray
-        res = 1/(1+exp(-x_i)) for x_i in x.
+    :return: res = 1/(1+exp(-x_i)) for x_i in x.
+    :rtype: np.ndarray
 
     See Also
     --------
@@ -107,9 +107,9 @@ def Sigmoid(x: np.ndarray) -> np.ndarray:
     Linear : identity activation function.
     Tanh : hyperbolic tangent activation function.
 
-    Notes
+    Note
     -----
-    When scalar is passed, scalar is returned, so it is recommended to conert scalar into 1-d array instead.
+    When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.
 
     Examples
     --------
@@ -133,13 +133,13 @@ def Tanh(x: np.ndarray) -> np.ndarray:
     Parameters
     ----------
 
-    x : ndarray
-        Input Array.
+    :param x: Input array.
+    :type x: np.ndarray
 
     Returns
     -------
-    res : ndarray
-        res = (exp(x_i)-exp(-x_i))/(exp(x_i)+exp(-x_i)) for x_i in x.
+    :return: res = (exp(x_i)-exp(-x_i))/(exp(x_i)+exp(-x_i)) for x_i in x.
+    :rtype: np.ndarray
 
     See Also
     --------
@@ -147,9 +147,9 @@ def Tanh(x: np.ndarray) -> np.ndarray:
     Linear : identity activation function.
     Sigmoid : sigmoid activation function.
 
-    Notes
+    Note
     -----
-    When scalar is passed, scalar is returned, so it is recommended to conert scalar into 1-d array instead.
+    When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.
 
     Examples
     --------
@@ -166,10 +166,16 @@ def Tanh(x: np.ndarray) -> np.ndarray:
 
 
 def Sum(x: np.ndarray) -> np.ndarray:
+    """
+    Basic sum along `rows`.
+    """
     return np.sum(x, axis=-1, keepdims=True)
 
 
 def LogSigmoid(x: np.ndarray) -> np.ndarray:
+    """
+    Natural log of sigmoid function.
+    """
     return np.clip(x - np.logaddexp(0, x), 1e-6, 1e6)
 
 
@@ -180,19 +186,19 @@ def GaussianRBF(x: np.ndarray, c: np.ndarray, r: np.ndarray) -> np.ndarray:
     Parameters
     ----------
 
-    x : ndarray
-        Input Array.
+    :param x: Input array.
+    :type x: np.ndarray
 
-    c: ndarray
-        Centroid Array.
+    :param c: Centroid array.
+    :type c: np.ndarray
     
-    r: ndarray
-        Standard deviation.
+    :param r: Standard deviation array.
+    :type r: np.ndarray
 
     Returns
     -------
-    res : ndarray
-        res = np.exp(-||x-c||**2/(2*r**2)).
+    :return: res = res = np.exp(-||x-c||**2/(2*r**2)).
+    :rtype: np.ndarray
 
     """
     return np.exp(
@@ -202,13 +208,55 @@ def GaussianRBF(x: np.ndarray, c: np.ndarray, r: np.ndarray) -> np.ndarray:
     )
 
 
-def BellMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarray:
+def BellMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarray:
+    """
+    Bell Membership Function
+
+    Parameters
+    ----------
+
+    :param x: Input array.
+    :type x: np.ndarray
+
+    :param c: Centroid array.
+    :type c: np.ndarray
+    
+    :param a: Bandwith.
+    :type a: np.ndarray
+
+    Returns
+    -------
+    :return: 1 / (1 + ((x - c)**2)/a**2).
+    :rtype: np.ndarray
+
+    """
     return np.clip(
         1 / (1 + (np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
     )
 
 
-def GaussianMembership(x: np.ndarray, a: np.ndarray, c: np.ndarray) -> np.ndarray:
+def GaussianMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarray:
+    """
+    Gaussian Membership Function
+
+    Parameters
+    ----------
+
+    :param x: Input array.
+    :type x: np.ndarray
+
+    :param c: Centroid array.
+    :type c: np.ndarray
+    
+    :param a: Bandwith.
+    :type a: np.ndarray
+
+    Returns
+    -------
+    :return: exp(-((x - c)**2)/a**2).
+    :rtype: np.ndarray
+
+    """
     return np.clip(
         np.exp(-(np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
     )

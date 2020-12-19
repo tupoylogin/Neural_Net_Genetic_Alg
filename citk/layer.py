@@ -20,17 +20,22 @@ class WeightsParser(object):
         self.idxs_and_shapes = {}
         self.N = 0
 
-    def add_weights(self, name, shape):
+    def add_weights(self, name: str, shape: tp.Tuple[int]):
         start = self.N
         self.N += np.prod(shape)
         self.idxs_and_shapes[name] = (slice(start, self.N), shape)
 
-    def get(self, vect, name):
+    def get(self, vect: np.ndarray, name: str):
         idxs, shape = self.idxs_and_shapes[name]
         return np.reshape(vect[idxs], shape)
 
 
 class BaseLayer:
+    """
+    Base Layer class.
+    -----------------
+    All custom classes should be inherited from thos class
+    """
     def __init__(
         self, nonlinearity: tp.Callable[[tp.Any], np.ndarray], *args, **kwargs
     ):
@@ -110,7 +115,7 @@ class MaxPool(BaseLayer):
         self.pool_shape = pool_shape
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
-    def build_weights_dict(self, input_shape):
+    def build_weights_dict(self, input_shape: tp.Tuple[int]):
         # input_shape dimensions: [color, y, x]
         output_shape = list(input_shape)
         for i in [0, 1]:
@@ -120,7 +125,7 @@ class MaxPool(BaseLayer):
             output_shape[i + 1] = input_shape[i + 1] / self.pool_shape[i]
         return 0, output_shape
 
-    def forward(self, inputs, param_vector):
+    def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
         new_shape = inputs.shape[:2]
         for i in [0, 1]:
             pool_width = self.pool_shape[i]
