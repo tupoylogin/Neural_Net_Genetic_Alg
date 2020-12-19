@@ -14,33 +14,68 @@ POSSIBLE_POLI_TYPES = ["linear", "partial_quadratic", "quadratic"]
 
 
 class WeightsParser(object):
-    """A helper class to index into a parameter vector."""
+    """
+    A helper class to index into a parameter vector.
+    ------------------------------------------------
+    """
 
     def __init__(self):
+        """
+        Constructor method
+        """
         self.idxs_and_shapes = {}
         self.N = 0
 
     def add_weights(self, name: str, shape: tp.Tuple[int]):
+        """
+        Helper tool to add weights to ANN Layers
+
+        Parameters
+        ----------
+
+        :param name: name of layer/weights set.
+        :type name: str
+
+        :param shape: shape of layer/weights set.
+        :type shape: tuple
+
+        """
         start = self.N
         self.N += np.prod(shape)
         self.idxs_and_shapes[name] = (slice(start, self.N), shape)
 
     def get(self, vect: np.ndarray, name: str):
+        """
+        Helper tool to parse weights from ANN Layers
+
+        Parameters
+        ----------
+
+        :param vect: vector of weights.
+        :type vect: np.ndarray
+
+        :param name: name of layer/weights set.
+        :type name: str
+
+        """
         idxs, shape = self.idxs_and_shapes[name]
         return np.reshape(vect[idxs], shape)
 
 
 class BaseLayer:
     """
-    Base Layer class.
+    Base Layer class
     -----------------
-    All custom classes should be inherited from thos class
+    All custom layers should be inherited from this class.
+
+    :param parser: Weights Parser
+    :type parser: WeightsParser
     """
     def __init__(
         self, nonlinearity: tp.Callable[[tp.Any], np.ndarray], *args, **kwargs
     ):
         """
-        Base Layer Structure
+        Base Layer Constructor
         """
         self.parser = WeightsParser()
         self.nonlinearity = nonlinearity
@@ -56,6 +91,9 @@ class BaseLayer:
         self._parser = value
 
     def build_weights_dict(self, *args):
+        """
+        Builds Weight Dictionary
+        """
         raise NotImplementedError
 
     def forward(self, *args, **kwargs):
@@ -69,6 +107,11 @@ class BaseLayer:
 
 
 class Conv2D(BaseLayer):
+    """
+    2D Convolutional Layer
+    ----------------------
+    Useful for image classification tasks.
+    """
     def __init__(
         self,
         kernel_shape: tp.Tuple[int],
@@ -77,12 +120,49 @@ class Conv2D(BaseLayer):
         nonlinearity: tp.Callable[[tp.Any], np.ndarray],
         **kwargs,
     ):
+        """
+        Constructor method
+
+        Parameters
+        ----------
+
+        :kernel_shape: Convolution kernel shape.
+        :type kernel_shape: tuple
+        
+        :num_filters: Number of convolutional filters
+        :type num_filters: int
+        
+        :mode: Convolution mode aka padding. Must be either `valid` or `same`
+        :type mode: str
+
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
+        """
         self.kernel_shape = kernel_shape
         self.num_filters = num_filters
         self._mode = mode
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
-    def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
+    def forward(self, inputs: np.ndarray, param_vector: np.ndarray) -> np.ndarray:
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of convolution
+        :rtype: np.ndarray
+
+        """
         # Input dimensions:  [data, color_in, y, x]
         # Params dimensions: [color_in, color_out, y, x]
         # Output dimensions: [data, color_out, y, x]
@@ -93,7 +173,22 @@ class Conv2D(BaseLayer):
         )
         return conv + biases
 
-    def build_weights_dict(self, input_shape: tp.Tuple[int]):
+    def build_weights_dict(self, input_shape: tp.Tuple[int]) -> tp.Union[int, tp.Tuple[int]]:
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape : [color, y, x] (don't need to know number of data yet)
         self.parser.add_weights(
             "params", (input_shape[0], self.num_filters) + self.kernel_shape
@@ -109,13 +204,43 @@ class Conv2D(BaseLayer):
 
 
 class MaxPool(BaseLayer):
+    """
+    Max Pooling layer
+    """
     def __init__(
         self, pool_shape, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
     ):
+        """
+        Constructor method
+
+        Parameters
+        ----------
+
+        :pool_shape: Max pooling shape.
+        :type kernel_shape: tuple
+        
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
+        """
         self.pool_shape = pool_shape
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape: tp.Tuple[int]):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # input_shape dimensions: [color, y, x]
         output_shape = list(input_shape)
         for i in [0, 1]:
@@ -126,6 +251,25 @@ class MaxPool(BaseLayer):
         return 0, output_shape
 
     def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights. (ingored)
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of pooling
+        :rtype: np.ndarray
+
+        """
         new_shape = inputs.shape[:2]
         for i in [0, 1]:
             pool_width = self.pool_shape[i]
@@ -136,18 +280,43 @@ class MaxPool(BaseLayer):
 
 
 class Dense(BaseLayer):
-    def __init__(self, size, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs):
+    """
+    Dense Layer
+    -----------
+    The essential building block of an ANN.
+    """
+    def __init__(self, size: int, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs):
         """
-        Dense Layer
+        Constructor method
 
-        Args:
-            size (int): number of units.
-            nonlinearity (callable): activation function.
+        Parameters
+        ----------
+
+        :size: number of units.
+        :type size: int
+
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
         """
         self.size = size
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         self.parser.add_weights("params", (input_size, self.size))
@@ -155,6 +324,25 @@ class Dense(BaseLayer):
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Nonlinearity applied to matrix multiplicationbetween weights and input
+        :rtype: np.ndarray
+
+        """
         params = self.parser.get(param_vector, "params")
         biases = self.parser.get(param_vector, "biases")
         if inputs.ndim > 2:
@@ -163,13 +351,23 @@ class Dense(BaseLayer):
 
 
 class RBFDense(BaseLayer):
+    """
+    Gaussian RBF Dense Layer
+    ------------------------
+    Building block of RBF-network
+    """
     def __init__(self, hidden: int, out: int, **kwargs):
         """
-        Gaussian RBF Dense Layer
+        Constructor method
 
-        Args:
-            hidden (int): numberof units.
-            nonlinearity (callable): activation function.
+        Parameters
+        ----------
+
+        :hidden: Number of hidden units.
+        :type hidden: int
+
+        :out: Number of output units.
+        :type out: int
         """
         self.hidden = hidden
         self.size = out
@@ -177,6 +375,21 @@ class RBFDense(BaseLayer):
         super().__init__(nonlinearity=Linear, **kwargs)
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         self.parser.add_weights("mu", (input_size, self.hidden))
@@ -186,6 +399,25 @@ class RBFDense(BaseLayer):
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Nonlinearity applied to matrix multiplicationbetween weights and input
+        :rtype: np.ndarray
+
+        """
         mu = self.parser.get(param_vector, "mu")[np.newaxis, :]
         sigma = self.parser.get(param_vector, "sigma")[np.newaxis, :]
         params = self.parser.get(param_vector, "params")
@@ -198,6 +430,11 @@ class RBFDense(BaseLayer):
 
 
 class Fuzzify(BaseLayer):
+    """
+    Takagi-Sugeno controller
+    ------------------------
+    Main block for ANFIS-type networks
+    """
     def __init__(
         self,
         num_rules: int,
@@ -206,17 +443,41 @@ class Fuzzify(BaseLayer):
         **kwargs,
     ):
         """
-        Fuzzification Layer
+        Constructor method
 
-        Args:
-            num_rules (int): number of rules.
-            msf (callable): membership function.
+        Parameters
+        ----------
+
+        :num_rules: Number of rules to be developed.
+        :type num_rules: int
+
+        :msf: Membership function.
+        :type out: callable
+
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
+
         """
         self.size = num_rules
         self.msf = msf
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         self.parser.add_weights("a", (input_size, self.size,))
@@ -225,6 +486,25 @@ class Fuzzify(BaseLayer):
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of fuzzy-consequence
+        :rtype: np.ndarray
+
+        """
         a = self.parser.get(param_vector, "a")[np.newaxis, :]
         c = self.parser.get(param_vector, "c")[np.newaxis, :]
         r = self.parser.get(param_vector, "r")[np.newaxis, :]
@@ -239,17 +519,30 @@ class Fuzzify(BaseLayer):
 
 
 class GMDHLayer(BaseLayer):
+    """
+    Group Method of Data Handling Layer
+    -----------------------------------
+    Building block of GMDH pipeline.
+    """
     def __init__(
         self, poli_type: str, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
     ):
         """
-        GMDH Layer
+        Constructor method
 
-        Args:
-            poli_type (str): type of GMDH polinom. 
-                             Possible - linear , partial_quadratic , quadratic.
-                             If other selected ValueError will occur.
-            nonlinearity (callable): activation function.
+         Parameters
+        ----------
+
+        :poli_type: Type of GMDH polinome. Should be either `linear`, `partial_quadratic` or `quadratic`
+        :type poli_type: str
+
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
+
+        Raises
+        ------
+        :raises ValueError: Incorrect poli_type
+        
         """
         if poli_type == "linear":
             self.n_weights = 2
@@ -264,6 +557,21 @@ class GMDHLayer(BaseLayer):
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         input_size = nCr(input_size, 2)
@@ -293,6 +601,25 @@ class GMDHLayer(BaseLayer):
         return grouped_inputs
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Polynome of input.
+        :rtype: np.ndarray
+
+        """
         params = self.parser.get(param_vector, "params")
         biases = self.parser.get(param_vector, "biases")
         if inputs.ndim > 2:
@@ -303,6 +630,11 @@ class GMDHLayer(BaseLayer):
 
 
 class FuzzyGMDHLayer(BaseLayer):
+    """
+    Fuzzy Group Method of Data Handling Layer
+    -----------------------------------
+    Building block of FGMDH pipeline. Here we combined GMDH functionality and embed it into TSK controller
+    """
     def __init__(
         self,
         poli_type: str,
@@ -311,15 +643,20 @@ class FuzzyGMDHLayer(BaseLayer):
         **kwargs,
     ):
         """
-        Fuzzy GMDH Layer
-        Incorporates GMDH and Fuzzify functionalities 
+        Constructor method
 
-        Args:
-            poli_type (str): type of GMDH polinom. 
-                             Possible - linear , partial_quadratic , quadratic.
-                             If other selected ValueError will occur.
-            msf (callable): Fuzzy membership function 
-            nonlinearity (callable): activation function.
+        Parameters
+        ----------
+
+        :poli_type: Type of GMDH polinome. Should be either `linear`, `partial_quadratic` or `quadratic`
+        :type poli_type: str
+
+        :msf: Membership function
+        :type msf: callable
+
+        Raises
+        ------
+        :raises ValueError: Incorrect poli_type
         """
         if poli_type == "linear":
             self.n_weights = 2
@@ -336,6 +673,21 @@ class FuzzyGMDHLayer(BaseLayer):
         super().__init__(nonlinearity=nonlinearity, **kwargs)
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
         input_size = nCr(input_size, 2)
@@ -365,6 +717,25 @@ class FuzzyGMDHLayer(BaseLayer):
         return grouped_inputs
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of fuzzy-consequence over polynome of input
+        :rtype: np.ndarray
+
+        """
         a = self.parser.get(param_vector, "a")
         c = self.parser.get(param_vector, "c")
         r = self.parser.get(param_vector, "r")
@@ -385,14 +756,6 @@ class GMDHDense(BaseLayer):
     def __init__(
         self, size, degree, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
     ):
-        """
-        Dense Layer for GMDH-Type networks
-
-        Args:
-            size (int): number of units
-            degree (int): Chebyshev's polynome degree.
-            nonlinearity (callable): activation function.
-        """
         self.size = size
         self.degree = degree
         super().__init__(nonlinearity=nonlinearity, **kwargs)
@@ -415,18 +778,26 @@ class GMDHDense(BaseLayer):
         return self.nonlinearity(np.dot(inputs[:, :], params) + biases)
 
     @staticmethod
-    def calc_input_shape(input_size: int, deg: int):
-        print()
+    def calc_input_shape(input_size: int, deg: int) -> int:
         return sum([input_size ** i for i in range(1, deg + 1)])
 
 class SimpleRNN(BaseLayer):
+    """
+    `Vanilla` Reccurent Neural Net
+    ------------------------------
+    """
     def __init__(self, units, size, **kwargs):
         """
-        RNN Layer
+        Constructor method
 
-        Args:
-            units (int): number of units.
-            size: output size
+        Parameters
+        ----------
+
+        :units: Number of units.
+        :type units: int
+
+        :size: Output shape.
+        :type size: int
         """
         self.units = units
         self.size = size
@@ -437,12 +808,45 @@ class SimpleRNN(BaseLayer):
          return nonlinearity(concat_and_multiply(param, input, hiddens))
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         self.parser.add_weights("init_hiddens", (1, self.units))
         self.parser.add_weights("change", (input_shape + self.units + 1, self.units))
         self.parser.add_weights("predict", (self.units + 1, self.size))
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of RNN operations.
+        :rtype: np.ndarray
+        """
         init_hiddens = self.parser.get(param_vector, "init_hiddens")
         change = self.parser.get(param_vector, "change")
         predict = self.parser.get(param_vector, "predict")
@@ -456,13 +860,22 @@ class SimpleRNN(BaseLayer):
         return output
     
 class LSTM(BaseLayer):
+    """
+    Long Short-Term Memory cell
+    ---------------------------
+    """
     def __init__(self, units, size, **kwargs):
         """
-        LSTM Layer
+        Constructor method
 
-        Args:
-            units (int): number of units.
-            size: output size
+        Parameters
+        ----------
+
+        :units: Number of units.
+        :type units: int
+
+        :size: Output shape.
+        :type size: int
         """
         self.units = units
         self.size = size
@@ -479,6 +892,21 @@ class LSTM(BaseLayer):
         return hiddens, cells
 
     def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape) 
+        :rtype: union
+        """
         self.parser.add_weights("init_cells", (1, self.units))
         self.parser.add_weights("init_hiddens", (1, self.units))
         self.parser.add_weights("change", (input_shape + self.units + 1, self.units))
@@ -489,6 +917,25 @@ class LSTM(BaseLayer):
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+        
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+        
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+        
+        Returns
+        -------
+        
+        :return: Result of LSTM operations.
+        :rtype: np.ndarray
+
+        """
         init_hiddens = self.parser.get(param_vector, "init_hiddens")
         init_cells = self.parser.get(param_vector, "init_cells")
         change = self.parser.get(param_vector, "change")

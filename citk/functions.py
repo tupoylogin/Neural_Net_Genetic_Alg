@@ -138,6 +138,7 @@ def Tanh(x: np.ndarray) -> np.ndarray:
 
     Returns
     -------
+    
     :return: res = (exp(x_i)-exp(-x_i))/(exp(x_i)+exp(-x_i)) for x_i in x.
     :rtype: np.ndarray
 

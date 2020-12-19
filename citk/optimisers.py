@@ -11,24 +11,39 @@ from .layer import BaseLayer
 
 
 class BaseOptimizer:
+    """
+    Base Optimizer
+    --------------
+    All custom optimizers should inherit this class
+    """
     def __init__(self, *args, **kwargs):
         """
-        Estimator Wrapper
+        Counstructor method
         """
         pass
 
     def apply(self, loss: tp.Callable[..., float], graph: tp.List[BaseLayer]):
+        """
+        Apply optimizer
+        """
         raise NotImplementedError
 
 
 class GeneticAlgorithmOptimizer(BaseOptimizer):
+    """
+    `Vanilla` Genetic Algorithm.
+    """
     def __init__(self, num_population: int, k: int = 5, **kwargs):
         """
-        Genetic Algorithm Optimiser
+        Constructor method
 
-        Args:
-            num_population (int): number of individuals in each population
-            k (int): number of crossover rounds to perform
+        Parameters
+        ----------
+        :param num_population: Number of individuals in each population
+        :type num_population: int
+
+        :param k: Number of crossover rounds to perform
+        :type k: int
         """
         self._num_population = num_population
         self._k = k
@@ -44,12 +59,17 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         """
         Construct random population
 
-        Args:
-            layers_list (list(BaseLayer)): genotype, i.e. FFN template to mimic to
-            weight_init (callable): weight distribution function
+        Parameters
+        ----------
+        :param layers_list: Genotype, i.e. FFN template to mimic to.
+        :type layers_list: list
+        :param weight_init: Weight distribution function.
+        :type weight_init: callable
         
-        Returns:
-            genome (np.ndarray): initalized weights
+        Returns
+        -------
+        :returns: Initalized weights.
+        :rtype: np.ndarray
         """
         return 0.1 * weight_init(0, 1, size=W.shape)
 
@@ -58,12 +78,18 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         """
         Perform simple crossover
 
-        Args:
-            ind_1 (np.ndarray): FFN layers weights, first individual
-            ind_2 (np.ndarray): FFN layers weights, second individual
+        Parameters
+        ----------
+        :param ind_1: FFN layers weights, first individual.
+        :type ind_1: np.ndarray
+        :param ind_2: FFN layers weights, second individual
+        :type ind_2: np.ndarray
         
-        Returns:
-            ind_12, ind_21 (np.ndarray): generated offsprings
+        Returns
+        -------
+
+        :returns: Generated offsprings
+        :rtype: np.ndarray
         """
         assert len(ind_1) == len(ind_2), "individuals must have same len"
         index = np.random.default_rng().integers(len(ind_1))
@@ -78,14 +104,24 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         """
         Perform simple mutation
 
-        Args:
-            ind (np.ndarray): FFN layers weights
-            mu (float): mean of distribution
-            sigma (float): scale of distribution
-            factor (float): scale factor of mutation
+        Parameters
+        ----------
+        :param ind: FFN layers weights
+        :type ind: np.ndarray
+
+        :param mu: mean of distribution
+        :type mu: float
+
+        :param sigma: scale of distribution
+        :type sigma: float
+
+        :param factor: scale factor of mutation
+        :type factor: float
         
-        Returns:
-            ind (np.ndarray): generated individual
+        Returns
+        -------
+        :returns: Generated individual
+        :rtype: np.ndarray
         """
         seed = int(datetime.utcnow().timestamp() * 1e5)
         ind += factor * np.random.default_rng(seed).normal(
@@ -106,15 +142,26 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         """
         Perform one step of GA
 
-        Args:
-            loss (callable): `inverse` fitness function to minimize
-            input_tensor (ndarray): global input to FFN, i.e. your `X` variable
-            output_tensor (ndarray): desired FFN response, i.e. your `Y` variable 
-            graph (list(BaseLayer)): your FFN structure
+        Parameters
+        ----------
+
+        :param loss: `Inverse` fitness function to minimize
+        :type loss: callable
+
+        :param input_tensor: Global input to FFN, i.e. your `X` variable
+        :type input_tensor:  np.ndarray
+
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :type output_tensor: np.ndarray
         
-        Returns:
-            best_iter (list(BaseLayer)): best individual so far
-            score (float): lowest loss so far
+        :param W: Initial network weights
+        :type W: np.ndarray
+        
+        Returns
+        -------
+
+        :returns: tuple (best individual so far, lowest loss so far)
+        :rtype: Union[np.ndarray, float]
         """
         verbose = kwargs.pop("verbose", False)
         seed = int(datetime.utcnow().timestamp() * 1e5)
@@ -165,14 +212,18 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
 
 
 class SGDOptimizer(BaseOptimizer):
+    """
+    Stochastic Gradient Descent Optimizer
+    """
     def __init__(self, alpha: float = 0.0, eta: float = 1e-3, **kwargs):
         """
-        Stochastic Gradient Descent Optimiser
-
-        Args:
-            alpha (float): momentum constant, 0 by default
-            eta (float): learning rate constant, 0.001 by default
-            batch_size (int): batch_size for calculations
+        Constructor method
+        Parameters
+        ----------
+        :param alpha: momentum constant, `0` by default
+        :type alpha: float
+        :param eta: learning rate constant, `0.001` by default
+        :type eta: float
         """
         self._alpha = alpha
         self._eta = eta
@@ -195,15 +246,26 @@ class SGDOptimizer(BaseOptimizer):
         """
         Perform one step of SGD
 
-        Args:
-            loss (callable): loss function to minimize
-            input_tensor (ndarray): global input to FFN, i.e. your `X` variable
-            output_tensor (ndarray): desired FFN response, i.e. your `Y` variable 
-            graph (list(BaseLayer)): your FFN structure
+        Parameters
+        ----------
+
+        :param loss: Loss fitness function to minimize
+        :type loss: callable
+
+        :param input_tensor: Global input to FFN, i.e. your `X` variable
+        :type input_tensor:  np.ndarray
+
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :type output_tensor: np.ndarray
         
-        Returns:
-            graph (list(BaseLayer)): FFN struture with corrected weights
-            score (float): loss on current iteration
+        :param W: Initial network weights
+        :type W: np.ndarray
+        
+        Returns
+        -------
+
+        :returns: tuple (reached tolerance flag, corrected weights, loss value)
+        :rtype: Union [np.ndarray, float]
         """
         verbose = kwargs.pop("verbose", False)
         to_stop = False
@@ -222,13 +284,17 @@ class SGDOptimizer(BaseOptimizer):
 
 
 class ConjugateSGDOptimizer(BaseOptimizer):
+    """
+    Conjugate Stochastic Gradient Descent Optimiser
+    """
     def __init__(self, eta: float = 1e-3, **kwargs):
         """
-        Conjugate Stochastic Gradient Descent Optimiser
+        Constructor method
 
-        Args:
-            eta (float): learning rate constant, 0.01 by default
-            batch_size (int): batch_size for calculations
+        Parameters
+        ----------
+        :param eta: learning rate constant, `0.001` by default
+        :type eta: float
         """
         self._eta = eta
         self._score = []
@@ -252,16 +318,26 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         """
         Perform one step of Conjugate SGD
 
-        Args:
-            loss (callable): loss function to minimize
-            input_tensor (ndarray): global input to FFN, i.e. your `X` variable
-            output_tensor (ndarray): desired FFN response, i.e. your `Y` variable 
-            W (ndarray): NN weight matrix
+        Parameters
+        ----------
+
+        :param loss: Loss fitness function to minimize
+        :type loss: callable
+
+        :param input_tensor: Global input to FFN, i.e. your `X` variable
+        :type input_tensor:  np.ndarray
+
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :type output_tensor: np.ndarray
         
-        Returns:
-            to_stop (bool): Flag, which indicates that tollerance was reached 
-            W (ndarray): updated NN weight matrix
-            score (float): loss on current iteration
+        :param W: Initial network weights
+        :type W: np.ndarray
+        
+        Returns
+        -------
+
+        :returns: union (reached tolerance flag, corrected weights, loss value)
+        :rtype: Union [np.ndarray, float]
         """
         verbose = kwargs.pop("verbose", False)
         loss_grad = grad(loss)

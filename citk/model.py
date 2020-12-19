@@ -12,6 +12,10 @@ from .utils import gen_batch
 
 
 class FFN(object):
+    """
+    Feed Forward Network
+    --------------------
+    """
     def __init__(
         self,
         input_shape: tp.Tuple[int],
@@ -20,11 +24,22 @@ class FFN(object):
         **kwargs,
     ) -> None:
         """
-        Feed Forward Network
-        Args:
-            input_shape (int): shape of your `X` variable
-            layer_specs (list(BaseLayer)): layer list
-            loss (callable): loss function
+        Constructor method
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+        
+        :layer_specs: List containing layers.
+        :type layer_specs: list
+        
+        :loss: Loss function.
+        :type mode: callable
+
+        :nonlinearity: Activation function.
+        :type nonlinearity: callable
         """
         self.parser = WeightsParser()
         self.regularization = kwargs.get("regularization", "l2")
@@ -42,7 +57,25 @@ class FFN(object):
 
     def loss(
         self, W_vect: np.ndarray, X: np.ndarray, y: np.ndarray, omit_reg: bool = False
-    ):
+    ) -> np.ndarray:
+        """
+        Loss function constructor
+
+        Parameters
+        ----------
+
+        :W_vect: Network weights vector.
+        :type W_vect: np.ndarray
+        
+        :X: Input vector.
+        :type X: np.ndarray
+        
+        :y: Desired network response.
+        :type y: np.ndarray
+
+        :omit_reg: Omit regularization flag. Default is `False`
+        :type omit_reg: bool
+        """
         if self.regularization == "l2" and not omit_reg:
             reg = np.power(np.linalg.norm(W_vect, 2), 2)
         elif self.regularization == "l1" and not omit_reg:
@@ -52,6 +85,21 @@ class FFN(object):
         return self._loss(self._predict(W_vect, X), y) + self.reg_coef * reg
 
     def predict(self, inputs: np.ndarray) -> np.ndarray:
+        """
+        Predict method
+
+        Parameters
+        ----------
+
+        :param inputs: Input vector.
+        :type inputs: np.ndarray
+
+        Returns
+        -------
+
+        :returns: Network response.
+        :rtype: np.ndarray
+        """
         return self._predict(self.W_vect, inputs)
 
     def _predict(self, W_vect: np.ndarray, inputs: np.ndarray) -> np.ndarray:
@@ -62,6 +110,22 @@ class FFN(object):
         return cur_units
 
     def eval(self, input: np.ndarray, output: np.ndarray) -> float:
+        """
+        Evaluate network on given input
+
+        Parameters
+        ----------
+        :param inputs: Input vector.
+        :type inputs: np.ndarray
+
+        :output: Desired output
+        :type output: np.ndarray
+
+        Returns
+        -------
+        :returns: Loss value
+        :rtype: float
+        """
         return self.loss(self.W_vect, input, output, omit_reg=True)
 
     def frac_err(self, X, T):
@@ -80,6 +144,31 @@ class FFN(object):
         load_best_model_on_end: bool = True,
         minimize_metric: bool = True,
     ):
+        """
+        Fit network on given input
+
+        Parameters
+        ----------
+        :optimiser: Algorithm to use for minimuzing loss.
+        :type optimiser: BaseOptimiser
+
+        :param train_sample: Train pair (X, y).
+        :type train_sample: tuple
+
+        :param validation_sample: Validation pair (X, y).
+        :type validation_sample: tuple
+
+        :batch_size: Batch size.
+        :type batch_size: int
+
+        :epochs: Number of epochs.
+        :type epochs: int
+
+        Returns
+        -------
+        :returns: Tuple (trained_model, loss_history)
+        :rtype: union[FFN, dict]
+        """
         self._optimiser = optimiser
 
         verbose = verbose if verbose else False
