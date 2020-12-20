@@ -1,7 +1,7 @@
-Computational Intelligence Toolkit (CIT)
-========================================
+Quickstart
+==========
 
-This is an ultimate package for SOTA CI algorithmes
+CITK is an ultimate package for State-Of-The-Art CI algorithmes, such as ANN, GMDH and Fuzzy Nets
 
 Installation
 ============
