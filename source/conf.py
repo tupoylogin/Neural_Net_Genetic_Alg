@@ -40,7 +40,8 @@ extensions = ['sphinx.ext.autodoc',
 'sphinx.ext.githubpages', 
 'sphinx.ext.intersphinx', 
 'sphinx.ext.mathjax', 
-'rst2pdf.pdfbuilder'
+'rst2pdf.pdfbuilder',
+'notfound.extension'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
