@@ -1,4 +1,4 @@
-# Computational Intelligence Toolkit (CIT)
+# Computational Intelligence ToolKit (CITK)
 
 This is an ultimate package for SOTA CI algorithmes 
 
@@ -36,7 +36,7 @@ Test/Train splitting:
 
 Metric - MSE on normalized data
 
-|Exepriment name                 |Train score                     |Test score                      |
+|Experiment name                 |Train score                     |Test score                      |
 |--------------------------------|:------------------------------:|:------------------------------:|
 |MLP+Genetic                     |0.455                           |0.645                           |
 |MLP+SGD                         |0.323                           |0.590                           |

@@ -1,4 +1,4 @@
-Computational Intelligence Toolkit (CIT)
+Computational Intelligence ToolKit (CITK)
 ========================================
 
 This is an ultimate package for SOTA CI algorithmes
@@ -49,7 +49,7 @@ code <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/ut
 Metric - MSE on normalized data
 
 +----------------------+---------------+--------------+
-| Exepriment name      | Train score   | Test score   |
+| Experiment name      | Train score   | Test score   |
 +======================+===============+==============+
 | MLP+Genetic          | 0.455         | 0.645        |
 +----------------------+---------------+--------------+
