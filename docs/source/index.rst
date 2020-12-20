@@ -10,8 +10,9 @@ Welcome to citk's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   
+
    includeme
+   modules
 
 
 
