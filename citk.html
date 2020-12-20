@@ -1,0 +1,1185 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>citk package &#8212; Computational Intelligence Toolkit</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API reference" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="citk-package">
+<h1>citk package<a class="headerlink" href="#citk-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-citk.functions">
+<span id="citk-functions-module"></span><h2>citk.functions module<a class="headerlink" href="#module-citk.functions" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="citk.functions.BellMembership">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">BellMembership</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.BellMembership" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bell Membership Function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p></li>
+<li><p><strong>c</strong> (<em>np.ndarray</em>) – Centroid array.</p></li>
+<li><p><strong>a</strong> (<em>np.ndarray</em>) – Bandwith.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>1 / (1 + ((x - c)**2)/a**2).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.GaussianMembership">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">GaussianMembership</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.GaussianMembership" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian Membership Function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p></li>
+<li><p><strong>c</strong> (<em>np.ndarray</em>) – Centroid array.</p></li>
+<li><p><strong>a</strong> (<em>np.ndarray</em>) – Bandwith.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>exp(-((x - c)**2)/a**2).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.GaussianRBF">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">GaussianRBF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.GaussianRBF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian radial basis activation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p></li>
+<li><p><strong>c</strong> (<em>np.ndarray</em>) – Centroid array.</p></li>
+<li><p><strong>r</strong> (<em>np.ndarray</em>) – Standard deviation array.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>res = res = np.exp(-||x-c||**2/(2*r**2)).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.Linear">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">Linear</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.Linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linear activation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Copy of input.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+<p>ReLU : rectified linear unit activation function.
+Sigmoid : sigmoid activation function.
+Tanh : hyperbolic tangent activation function.</p>
+<p>When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">3.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Linear</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([[1, -2],</span>
+<span class="go">       [-3, 4]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Linear</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="go">array([-3.])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.LogSigmoid">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">LogSigmoid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.LogSigmoid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Natural log of sigmoid function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.Poly">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">Poly</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">deg</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'full'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.functions.Poly" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.ReLU">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">ReLU</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.ReLU" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rectified Linear Unit (ReLU) activation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Array of element-wise maximum(0, x_i) for all x_i in a.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+<p>Linear : linear activation function.
+Sigmoid : sigmoid activation function.
+Tanh : hyperbolic tangent activation function.</p>
+<p>When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">3.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ReLU</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([[1, 0],</span>
+<span class="go">       [0, 4]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ReLU</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="go">array([0.])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.Sigmoid">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">Sigmoid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.Sigmoid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sigmoid activation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>res = 1/(1+exp(-x_i)) for x_i in x.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+<p>ReLU : rectified linear unit activation function.
+Linear : identity activation function.
+Tanh : hyperbolic tangent activation function.</p>
+<p>When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([[0.5, 1.],</span>
+<span class="go">       [0., 0.5]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Sigmoid</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="go">array([0.5])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.Sum">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">Sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.Sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic sum along <cite>rows</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.functions.Tanh">
+<code class="sig-prename descclassname">citk.functions.</code><code class="sig-name descname">Tanh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.functions.Tanh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hyperbolic tangent activation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>np.ndarray</em>) – Input array.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>res = (exp(x_i)-exp(-x_i))/(exp(x_i)+exp(-x_i)) for x_i in x.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+<p>ReLU : rectified linear unit activation function.
+Linear : identity activation function.
+Sigmoid : sigmoid activation function.</p>
+<p>When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="go">array([[0., 1.],</span>
+<span class="go">       [-1., 0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Tanh</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="go">array([0.5])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-citk.layer">
+<span id="citk-layer-module"></span><h2>citk.layer module<a class="headerlink" href="#module-citk.layer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="citk.layer.BaseLayer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">BaseLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.BaseLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>All custom layers should be inherited from this class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parser</strong> (<a class="reference internal" href="#citk.layer.WeightsParser" title="citk.layer.WeightsParser"><em>WeightsParser</em></a>) – Weights Parser</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="citk.layer.BaseLayer.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.BaseLayer.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds Weight Dictionary</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.BaseLayer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.BaseLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs forward pass logic of layer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.BaseLayer.parser">
+<em class="property">property </em><code class="sig-name descname">parser</code><a class="headerlink" href="#citk.layer.BaseLayer.parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.Conv2D">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">Conv2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kernel_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num_filters</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Conv2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Useful for image classification tasks.</p>
+<dl class="py method">
+<dt id="citk.layer.Conv2D.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>int<span class="p">, </span>Tuple<span class="p">[</span>int<span class="p">]</span><span class="p">]</span><a class="headerlink" href="#citk.layer.Conv2D.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.Conv2D.conv_output_shape">
+<code class="sig-name descname">conv_output_shape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">B</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Conv2D.conv_output_shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.Conv2D.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">param_vector</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.layer.Conv2D.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of convolution</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.Dense">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">Dense</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Dense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>The essential building block of an ANN.</p>
+<dl class="py method">
+<dt id="citk.layer.Dense.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Dense.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.Dense.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Dense.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Nonlinearity applied to matrix multiplicationbetween weights and input</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.Fuzzify">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">Fuzzify</code><span class="sig-paren">(</span><em class="sig-param">num_rules: int, msf: Callable[[Any], numpy.ndarray], nonlinearity: Callable[[Any], numpy.ndarray] = &lt;function Linear&gt;, **kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Fuzzify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Main block for ANFIS-type networks</p>
+<dl class="py method">
+<dt id="citk.layer.Fuzzify.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Fuzzify.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.Fuzzify.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.Fuzzify.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of fuzzy-consequence</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.FuzzyGMDHLayer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">FuzzyGMDHLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poli_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">msf</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.FuzzyGMDHLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Building block of FGMDH pipeline. Here we combined GMDH functionality and embed it into TSK controller</p>
+<dl class="py method">
+<dt id="citk.layer.FuzzyGMDHLayer.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.FuzzyGMDHLayer.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.FuzzyGMDHLayer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.FuzzyGMDHLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of fuzzy-consequence over polynome of input</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.GMDHDense">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">GMDHDense</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="n">degree</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHDense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<dl class="py method">
+<dt id="citk.layer.GMDHDense.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHDense.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds Weight Dictionary</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.GMDHDense.calc_input_shape">
+<em class="property">static </em><code class="sig-name descname">calc_input_shape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">deg</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#citk.layer.GMDHDense.calc_input_shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.GMDHDense.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHDense.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs forward pass logic of layer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.GMDHLayer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">GMDHLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">poli_type</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Building block of GMDH pipeline.</p>
+<dl class="py method">
+<dt id="citk.layer.GMDHLayer.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHLayer.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.GMDHLayer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.GMDHLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Polynome of input.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.LSTM">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">LSTM</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">units</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.LSTM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<dl class="py method">
+<dt id="citk.layer.LSTM.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.LSTM.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.LSTM.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.LSTM.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of LSTM operations.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.MaxPool">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">MaxPool</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pool_shape</span></em>, <em class="sig-param"><span class="n">nonlinearity</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.MaxPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Max Pooling layer</p>
+<dl class="py method">
+<dt id="citk.layer.MaxPool.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.MaxPool.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.MaxPool.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">param_vector</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.MaxPool.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights. (ingored)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of pooling</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.RBFDense">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">RBFDense</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hidden</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">out</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.RBFDense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<p>Building block of RBF-network</p>
+<dl class="py method">
+<dt id="citk.layer.RBFDense.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.RBFDense.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.RBFDense.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.RBFDense.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Nonlinearity applied to matrix multiplicationbetween weights and input</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.SimpleRNN">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">SimpleRNN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">units</span></em>, <em class="sig-param"><span class="n">size</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.SimpleRNN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.layer.BaseLayer</span></code></a></p>
+<dl class="py method">
+<dt id="citk.layer.SimpleRNN.build_weights_dict">
+<code class="sig-name descname">build_weights_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.SimpleRNN.build_weights_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights builder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Input_shape</dt>
+<dd class="field-odd"><p>Input shape.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Union object (number_of_weights, _output_shape)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.SimpleRNN.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">param_vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.SimpleRNN.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward pass method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs</dt>
+<dd class="field-odd"><p>Input matrix.</p>
+</dd>
+<dt class="field-even">Param_vector</dt>
+<dd class="field-even"><p>Vector of network’s weights.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Result of RNN operations.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.layer.WeightsParser">
+<em class="property">class </em><code class="sig-prename descclassname">citk.layer.</code><code class="sig-name descname">WeightsParser</code><a class="headerlink" href="#citk.layer.WeightsParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="citk.layer.WeightsParser.add_weights">
+<code class="sig-name descname">add_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.WeightsParser.add_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper tool to add weights to ANN Layers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – name of layer/weights set.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – shape of layer/weights set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.layer.WeightsParser.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vect</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.layer.WeightsParser.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper tool to parse weights from ANN Layers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vect</strong> (<em>np.ndarray</em>) – vector of weights.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name of layer/weights set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-citk.losses">
+<span id="citk-losses-module"></span><h2>citk.losses module<a class="headerlink" href="#module-citk.losses" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="citk.losses.Huber">
+<code class="sig-prename descclassname">citk.losses.</code><code class="sig-name descname">Huber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">y_true</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">y_pred</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#citk.losses.Huber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Huber Loss</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.losses.MAE">
+<code class="sig-prename descclassname">citk.losses.</code><code class="sig-name descname">MAE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">y_true</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">y_pred</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#citk.losses.MAE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean Average Loss</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="citk.losses.MSE">
+<code class="sig-prename descclassname">citk.losses.</code><code class="sig-name descname">MSE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">y_true</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">y_pred</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#citk.losses.MSE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean Squared Loss</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-citk.model">
+<span id="citk-model-module"></span><h2>citk.model module<a class="headerlink" href="#module-citk.model" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="citk.model.FFN">
+<em class="property">class </em><code class="sig-prename descclassname">citk.model.</code><code class="sig-name descname">FFN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">layer_specs</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer">citk.layer.BaseLayer</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">loss</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span><span class="p">…</span><span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.model.FFN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="citk.model.FFN.eval">
+<code class="sig-name descname">eval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">output</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#citk.model.FFN.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate network on given input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>np.ndarray</em>) – Input vector.</p>
+</dd>
+<dt class="field-even">Output</dt>
+<dd class="field-even"><p>Desired output</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Loss value</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.model.FFN.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">optimiser</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#citk.optimisers.BaseOptimizer" title="citk.optimisers.BaseOptimizer">citk.optimisers.BaseOptimizer</a></span></em>, <em class="sig-param"><span class="n">train_sample</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">validation_sample</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">epochs</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">load_best_model_on_end</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">minimize_metric</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.model.FFN.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit network on given input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Optimiser</dt>
+<dd class="field-odd"><p>Algorithm to use for minimuzing loss.</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>train_sample</strong> (<em>tuple</em>) – Train pair (X, y).</p></li>
+<li><p><strong>validation_sample</strong> (<em>tuple</em>) – Validation pair (X, y).</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Batch_size</dt>
+<dd class="field-odd"><p>Batch size.</p>
+</dd>
+<dt class="field-even">Epochs</dt>
+<dd class="field-even"><p>Number of epochs.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Tuple (trained_model, loss_history)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>union[<a class="reference internal" href="#citk.model.FFN" title="citk.model.FFN">FFN</a>, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.model.FFN.frac_err">
+<code class="sig-name descname">frac_err</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">T</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.model.FFN.frac_err" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="citk.model.FFN.loss">
+<code class="sig-name descname">loss</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">W_vect</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">X</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">omit_reg</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.model.FFN.loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loss function constructor</p>
+<dl class="field-list simple">
+<dt class="field-odd">W_vect</dt>
+<dd class="field-odd"><p>Network weights vector.</p>
+</dd>
+<dt class="field-even">X</dt>
+<dd class="field-even"><p>Input vector.</p>
+</dd>
+<dt class="field-odd">Y</dt>
+<dd class="field-odd"><p>Desired network response.</p>
+</dd>
+<dt class="field-even">Omit_reg</dt>
+<dd class="field-even"><p>Omit regularization flag. Default is <cite>False</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.model.FFN.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.model.FFN.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inputs</strong> (<em>np.ndarray</em>) – Input vector.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Network response.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-citk.optimisers">
+<span id="citk-optimisers-module"></span><h2>citk.optimisers module<a class="headerlink" href="#module-citk.optimisers" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="citk.optimisers.BaseOptimizer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.optimisers.</code><code class="sig-name descname">BaseOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.BaseOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>All custom optimizers should inherit this class</p>
+<dl class="py method">
+<dt id="citk.optimisers.BaseOptimizer.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span><span class="p">…</span><span class="p">]</span><span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">graph</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer">citk.layer.BaseLayer</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.BaseOptimizer.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply optimizer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.optimisers.ConjugateSGDOptimizer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.optimisers.</code><code class="sig-name descname">ConjugateSGDOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">eta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.ConjugateSGDOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.optimisers.BaseOptimizer" title="citk.optimisers.BaseOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.optimisers.BaseOptimizer</span></code></a></p>
+<p>Conjugate Stochastic Gradient Descent Optimiser</p>
+<dl class="py method">
+<dt id="citk.optimisers.ConjugateSGDOptimizer.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>Optional<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span><span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">output_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">W</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.ConjugateSGDOptimizer.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform one step of Conjugate SGD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> (<em>callable</em>) – Loss fitness function to minimize</p></li>
+<li><p><strong>input_tensor</strong> (<em>np.ndarray</em>) – Global input to FFN, i.e. your <cite>X</cite> variable</p></li>
+<li><p><strong>output_tensor</strong> (<em>np.ndarray</em>) – Desired FFN response, i.e. your <cite>Y</cite> variable</p></li>
+<li><p><strong>W</strong> (<em>np.ndarray</em>) – Initial network weights</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>union (reached tolerance flag, corrected weights, loss value)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Union [np.ndarray, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.optimisers.GeneticAlgorithmOptimizer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.optimisers.</code><code class="sig-name descname">GeneticAlgorithmOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_population</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">5</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.GeneticAlgorithmOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.optimisers.BaseOptimizer" title="citk.optimisers.BaseOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.optimisers.BaseOptimizer</span></code></a></p>
+<p><cite>Vanilla</cite> Genetic Algorithm.</p>
+<dl class="py method">
+<dt id="citk.optimisers.GeneticAlgorithmOptimizer.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>Optional<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span><span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">output_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">W</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.GeneticAlgorithmOptimizer.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform one step of GA</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> (<em>callable</em>) – <cite>Inverse</cite> fitness function to minimize</p></li>
+<li><p><strong>input_tensor</strong> (<em>np.ndarray</em>) – Global input to FFN, i.e. your <cite>X</cite> variable</p></li>
+<li><p><strong>output_tensor</strong> (<em>np.ndarray</em>) – Desired FFN response, i.e. your <cite>Y</cite> variable</p></li>
+<li><p><strong>W</strong> (<em>np.ndarray</em>) – Initial network weights</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple (best individual so far, lowest loss so far)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Union[np.ndarray, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.optimisers.GeneticAlgorithmOptimizer.construct_genome">
+<em class="property">static </em><code class="sig-name descname">construct_genome</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">W</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">weight_init</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span><span class="p">…</span><span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.GeneticAlgorithmOptimizer.construct_genome" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct random population</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layers_list</strong> (<em>list</em>) – Genotype, i.e. FFN template to mimic to.</p></li>
+<li><p><strong>weight_init</strong> (<em>callable</em>) – Weight distribution function.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Initalized weights.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.optimisers.GeneticAlgorithmOptimizer.crossover">
+<em class="property">static </em><code class="sig-name descname">crossover</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ind_1</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">ind_2</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#citk.optimisers.GeneticAlgorithmOptimizer.crossover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform simple crossover</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ind_1</strong> (<em>np.ndarray</em>) – FFN layers weights, first individual.</p></li>
+<li><p><strong>ind_2</strong> (<em>np.ndarray</em>) – FFN layers weights, second individual</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Generated offsprings</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="citk.optimisers.GeneticAlgorithmOptimizer.mutate">
+<em class="property">static </em><code class="sig-name descname">mutate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ind</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">mu</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">factor</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#citk.layer.BaseLayer" title="citk.layer.BaseLayer">citk.layer.BaseLayer</a><span class="p">]</span><a class="headerlink" href="#citk.optimisers.GeneticAlgorithmOptimizer.mutate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform simple mutation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ind</strong> (<em>np.ndarray</em>) – FFN layers weights</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – mean of distribution</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – scale of distribution</p></li>
+<li><p><strong>factor</strong> (<em>float</em>) – scale factor of mutation</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Generated individual</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="citk.optimisers.SGDOptimizer">
+<em class="property">class </em><code class="sig-prename descclassname">citk.optimisers.</code><code class="sig-name descname">SGDOptimizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">eta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.SGDOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#citk.optimisers.BaseOptimizer" title="citk.optimisers.BaseOptimizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">citk.optimisers.BaseOptimizer</span></code></a></p>
+<p>Stochastic Gradient Descent Optimizer</p>
+<dl class="py method">
+<dt id="citk.optimisers.SGDOptimizer.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loss</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>Optional<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span><span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">output_tensor</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">W</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.optimisers.SGDOptimizer.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform one step of SGD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss</strong> (<em>callable</em>) – Loss fitness function to minimize</p></li>
+<li><p><strong>input_tensor</strong> (<em>np.ndarray</em>) – Global input to FFN, i.e. your <cite>X</cite> variable</p></li>
+<li><p><strong>output_tensor</strong> (<em>np.ndarray</em>) – Desired FFN response, i.e. your <cite>Y</cite> variable</p></li>
+<li><p><strong>W</strong> (<em>np.ndarray</em>) – Initial network weights</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple (reached tolerance flag, corrected weights, loss value)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Union [np.ndarray, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-citk.utils">
+<span id="citk-utils-module"></span><h2>citk.utils module<a class="headerlink" href="#module-citk.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="citk.utils.concat_and_multiply">
+<code class="sig-prename descclassname">citk.utils.</code><code class="sig-name descname">concat_and_multiply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.utils.concat_and_multiply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="citk.utils.gen_batch">
+<code class="sig-prename descclassname">citk.utils.</code><code class="sig-name descname">gen_batch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.utils.gen_batch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="citk.utils.nCr">
+<code class="sig-prename descclassname">citk.utils.</code><code class="sig-name descname">nCr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em>, <em class="sig-param"><span class="n">r</span></em><span class="sig-paren">)</span><a class="headerlink" href="#citk.utils.nCr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-citk">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-citk" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">citk</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="includeme.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="includeme.html#result-table">Result Table</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">citk package</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">API reference</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">API reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Dmytro Androsov, Volodymyr Sydorskyy.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/citk.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

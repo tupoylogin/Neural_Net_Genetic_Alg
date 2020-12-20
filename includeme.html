@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quickstart &#8212; Computational Intelligence Toolkit</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API reference" href="modules.html" />
+    <link rel="prev" title="Welcome to citk’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>CITK is an ultimate package for State-Of-The-Art CI algorithmes, such as ANN, GMDH and Fuzzy Nets</p>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/tupoylogin/Neural_Net_Genetic_Alg.git</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">Neural_Net_Genetic_Alg</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> (or <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> to enable edit mode)</p>
+</div>
+<div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GeneticAlgorithm.ipynb">Multilayer Perceptron trained with Genetic
+Algorithm</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationSGD.ipynb">Multilayer Perceptron trained with
+SGD</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GeneticAndSGD.ipynb">Multilayer Perceptron trained with Genetic Algorithm and then with
+SGD</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationConjugateSGD.ipynb">Multilayer Perceptron trained with Conjugate
+SGD</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/AnfisSGD.ipynb">ANFIS Neural Net trained with
+SGD</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GMDHandDenseOnSGD.ipynb">GMDH Neural Net with Layer Hypersearch trained with
+SGD</a></p></li>
+<li><p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDHandDenseOnSGD.ipynb">Fuzzy GMDH Neural Net with Layer Hypersearch trained with
+SGD</a></p></li>
+</ul>
+</div>
+<div class="section" id="result-table">
+<h1>Result Table<a class="headerlink" href="#result-table" title="Permalink to this headline">¶</a></h1>
+<p>All experiments are carried on <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_boston.html">Boston
+dataset</a></p>
+<p>Using such preprocessing: - Quantile Transform on Target
+(<code class="docutils literal notranslate"><span class="pre">n_quantiles=300,</span> <span class="pre">output_distribution=&quot;normal&quot;</span></code>) - Standard Scaling
+of features</p>
+<p>Test/Train splitting: - test size - 20% - use histogram bins
+stratification</p>
+<p><a class="reference external" href="https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/utils.py#L37">Data preparation
+code</a></p>
+<p>Metric - MSE on normalized data</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 43%" />
+<col style="width: 29%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Exepriment name</p></th>
+<th class="head"><p>Train score</p></th>
+<th class="head"><p>Test score</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MLP+Genetic</p></td>
+<td><p>0.455</p></td>
+<td><p>0.645</p></td>
+</tr>
+<tr class="row-odd"><td><p>MLP+SGD</p></td>
+<td><p>0.323</p></td>
+<td><p>0.590</p></td>
+</tr>
+<tr class="row-even"><td><p>MLP+(Genetic-&gt;SGD)</p></td>
+<td><p>0.284</p></td>
+<td><p>0.558</p></td>
+</tr>
+<tr class="row-odd"><td><p>MLP+Conjugate SGD</p></td>
+<td><p>0.367</p></td>
+<td><p>0.563</p></td>
+</tr>
+<tr class="row-even"><td><p>ANFIS+SGD</p></td>
+<td><p>0.621</p></td>
+<td><p>0.768</p></td>
+</tr>
+<tr class="row-odd"><td><p>GMDH+SGD</p></td>
+<td><p>0.191</p></td>
+<td><p>0.386</p></td>
+</tr>
+<tr class="row-even"><td><p>FuzzyGMDH+SGD</p></td>
+<td><p>0.459</p></td>
+<td><p>0.628</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">citk</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#result-table">Result Table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">API reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to citk’s documentation!</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">API reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Dmytro Androsov, Volodymyr Sydorskyy.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/includeme.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
