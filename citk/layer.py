@@ -4,10 +4,12 @@ import typing as tp
 
 import autograd.numpy as np
 from autograd.scipy.signal import convolve, compute_conv_size
+from numpy.core.function_base import linspace
+from scipy.optimize import fsolve, root
 from autograd.differential_operators import elementwise_grad
 
 from .functions import GaussianRBF, ReLU, Linear, Poly, Sigmoid, Tanh
-from .utils import concat_and_multiply, nCr
+from .utils import centroid, concat_and_multiply, nCr
 
 SEED = int(datetime.utcnow().timestamp() * 1e5)
 POSSIBLE_POLI_TYPES = ["linear", "partial_quadratic", "quadratic"]
@@ -525,7 +527,9 @@ class GMDHLayer(BaseLayer):
     Building block of GMDH pipeline.
     """
     def __init__(
-        self, poli_type: str, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
+        self, poli_type: str, 
+        #nonlinearity: tp.Callable[[tp.Any], np.ndarray], 
+        **kwargs
     ):
         """
         Constructor method
@@ -554,7 +558,7 @@ class GMDHLayer(BaseLayer):
             raise ValueError("Incorrect poli_type")
 
         self.input_size = None
-        super().__init__(nonlinearity=nonlinearity, **kwargs)
+        super().__init__(nonlinearity=Linear, **kwargs)
 
     def build_weights_dict(self, input_shape):
         """
@@ -626,7 +630,7 @@ class GMDHLayer(BaseLayer):
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         inputs = self._compute_grouped_arguments(inputs)
         outputs = np.sum(inputs * params, axis=-1) + biases
-        return self.nonlinearity(outputs)
+        return outputs
 
 
 class FuzzyGMDHLayer(BaseLayer):
@@ -638,7 +642,7 @@ class FuzzyGMDHLayer(BaseLayer):
     def __init__(
         self,
         poli_type: str,
-        nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        #nonlinearity: tp.Callable[[tp.Any], np.ndarray],
         msf: tp.Callable[[tp.Any], np.ndarray],
         **kwargs,
     ):
@@ -670,7 +674,9 @@ class FuzzyGMDHLayer(BaseLayer):
         self.msf = msf
 
         self.input_size = None
-        super().__init__(nonlinearity=nonlinearity, **kwargs)
+        self._confidence = kwargs.get('confidence', 0.8)
+        self._return_defuzzify = kwargs.get('return_defuzzify', False)
+        super().__init__(nonlinearity=Linear, **kwargs)
 
     def build_weights_dict(self, input_shape):
         """
@@ -693,9 +699,8 @@ class FuzzyGMDHLayer(BaseLayer):
         input_size = nCr(input_size, 2)
 
         self.input_size = input_size
-        self.parser.add_weights("a", (1, input_size, self.n_weights))
-        self.parser.add_weights("c", (1, input_size, self.n_weights))
-        self.parser.add_weights("r", (1, input_size))
+        self.parser.add_weights("a", (1, input_size*self.n_weights + 1))
+        self.parser.add_weights("c", (1, input_size*self.n_weights + 1))
         return self.parser.N, (input_size,)
 
     def _compute_grouped_arguments(self, inputs):
@@ -738,17 +743,20 @@ class FuzzyGMDHLayer(BaseLayer):
         """
         a = self.parser.get(param_vector, "a")
         c = self.parser.get(param_vector, "c")
-        r = self.parser.get(param_vector, "r")
+
+        inputs = self._compute_grouped_arguments(inputs)
 
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
-        inputs = self._compute_grouped_arguments(inputs)
-
-        w = self.msf(inputs, a, c)
-        w = np.prod(w, axis=-1)
-        f = np.sum(a * inputs, axis=-1) + r
-        o = w * f / np.sum(w, axis=-1, keepdims=True)
-
+        
+        conf_val = np.sqrt(np.abs(c)*np.log(np.power(self._confidence, -2)))
+        confidence_val = (a - conf_val).T, (a + conf_val).T 
+        vals = concat_and_multiply(confidence_val[0], inputs[:, :]),\
+                        concat_and_multiply(confidence_val[0], inputs[:, :])
+        msf_vals = np.array(list(map(lambda x: self.msf(x.T, a, c), np.linspace(*confidence_val, 20))))
+        msf_vals = np.min(msf_vals, axis=-1)
+        vals_ = np.array([np.linspace(np.minimum(*v), np.maximum(*v), 20) for v in zip(*vals)])
+        o = vals_[:, np.argmax(msf_vals.ravel())]
         return self.nonlinearity(o)
 
 

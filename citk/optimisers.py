@@ -366,3 +366,5 @@ class ConjugateSGDOptimizer(BaseOptimizer):
             to_stop = False
 
         return to_stop, W, self._score[-1]
+
+SimplexOptimizer = SGDOptimizer
