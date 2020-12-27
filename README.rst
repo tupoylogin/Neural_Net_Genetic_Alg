@@ -1,7 +1,7 @@
-Quickstart
-==========
+Computational Intelligence ToolKit (CITK)
+========================================
 
-CITK is an ultimate package for State-Of-The-Art CI algorithmes, such as ANN, GMDH and Fuzzy Nets
+This is an ultimate package for SOTA CI algorithmes
 
 Installation
 ============
@@ -49,7 +49,7 @@ code <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/ut
 Metric - MSE on normalized data
 
 +----------------------+---------------+--------------+
-| Exepriment name      | Train score   | Test score   |
+| Experiment name      | Train score   | Test score   |
 +======================+===============+==============+
 | MLP+Genetic          | 0.455         | 0.645        |
 +----------------------+---------------+--------------+
@@ -63,6 +63,6 @@ Metric - MSE on normalized data
 +----------------------+---------------+--------------+
 | GMDH+SGD             | 0.191         | 0.386        |
 +----------------------+---------------+--------------+
-| FuzzyGMDH+SGD        | 0.459         | 0.628        |
+| FuzzyGMDH+SGD        | 0.281         | 0.279        |
 +----------------------+---------------+--------------+
 
