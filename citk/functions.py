@@ -259,7 +259,7 @@ def GaussianMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarra
 
     """
     return np.clip(
-        np.exp(-(np.power((x - c), 2) / np.clip(np.power(a, 2), EPS, None))), EPS, None
+        np.exp(-(np.power((x - c), 2) / np.clip(2*np.power(a, 2), EPS, None))), EPS, None
     )
 
 
@@ -274,7 +274,7 @@ def Poly(x: np.ndarray, deg: int, type: tp.Optional[str] = 'full'):
     else:
         for idx in indices_n_wise:
             #full degree polymone
-            indices_to_mul = sum([list(combinations_with_replacement(idx, repeat=i)) for i in range(2, deg+1)], [])
+            indices_to_mul = sum([list(combinations_with_replacement(idx, i)) for i in range(2, deg+1)], [])
             if type=='partial':
                 #partial degree polynome
                 indices_to_mul = filter(lambda x: len(set(x))>1, indices_to_mul)
