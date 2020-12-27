@@ -753,9 +753,9 @@ class FuzzyGMDHLayer(BaseLayer):
         confidence_val = (a - conf_val).T, (a + conf_val).T 
         vals = concat_and_multiply(confidence_val[0], inputs[:, :]),\
                         concat_and_multiply(confidence_val[0], inputs[:, :])
-        msf_vals = np.array(list(map(lambda x: self.msf(x.T, a, c), np.linspace(*confidence_val, 20))))
+        msf_vals = np.array(list(map(lambda x: self.msf(x.T, a, c), np.linspace(*confidence_val, 10))))
         msf_vals = np.min(msf_vals, axis=-1)
-        vals_ = np.array([np.linspace(np.minimum(*v), np.maximum(*v), 20) for v in zip(*vals)])
+        vals_ = np.array([np.linspace(np.minimum(*v), np.maximum(*v), 10) for v in zip(*vals)])
         o = vals_[:, np.argmax(msf_vals.ravel())]
         return self.nonlinearity(o)
 
