@@ -44,4 +44,4 @@ Metric - MSE on normalized data
 |MLP+Conjugate SGD               |0.367                           |0.563                           |
 |ANFIS+SGD                       |0.621                           |0.768                           |
 |GMDH+SGD                        |0.191                           |0.386                           |
-|FuzzyGMDH+SGD                   |0.459                           |0.628                           |
+|FuzzyGMDH+SGD                   |0.281                           |0.279                           |
