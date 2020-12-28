@@ -306,7 +306,7 @@ class GMDH(object):
             reg = 0.0
         return self._loss(self._predict(W_vect, X), y) + self.reg_coef * reg
 
-    def predict(self, inputs: np.ndarray) -> np.ndarray:
+    def predict(self, inputs: np.ndarray, return_uncertanity: bool = False) -> np.ndarray:
         """
         Predict method
 
@@ -322,7 +322,9 @@ class GMDH(object):
         :returns: Network response.
         :rtype: np.ndarray
         """
-        return self._predict(self.W_vect, inputs)
+        if return_uncertanity:
+            return self._predict(self.W_vect, inputs)
+        return self._predict(self.W_vect, inputs)[0]
 
     def _predict(self, W_vect: np.ndarray, inputs: np.ndarray) -> np.ndarray:
         cur_units = inputs

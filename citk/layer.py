@@ -750,14 +750,10 @@ class FuzzyGMDHLayer(BaseLayer):
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         
         conf_val = np.sqrt(np.abs(c)*np.log(np.power(self._confidence, -2)))
-        confidence_val = (a - conf_val).T, (a + conf_val).T 
-        vals = concat_and_multiply(confidence_val[0], inputs[:, :]),\
-                        concat_and_multiply(confidence_val[0], inputs[:, :])
-        msf_vals = np.array(list(map(lambda x: self.msf(x.T, a, c), np.linspace(*confidence_val, 10))))
-        msf_vals = np.min(msf_vals, axis=-1)
-        vals_ = np.array([np.linspace(np.minimum(*v), np.maximum(*v), 10) for v in zip(*vals)])
-        o = vals_[:, np.argmax(msf_vals.ravel())]
-        return self.nonlinearity(o)
+
+        vals = concat_and_multiply(a.T, inputs[:, :])
+        cvals = (1-self._confidence)*concat_and_multiply(c.T, np.abs(inputs[:, :])) 
+        return vals, cvals
 
 
 class GMDHDense(BaseLayer):
