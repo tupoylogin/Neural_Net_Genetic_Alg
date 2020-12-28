@@ -29,6 +29,8 @@ Examples
    SGD <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GMDHandDenseOnSGD.ipynb>`__
 -  `Fuzzy GMDH Neural Net with Layer Hypersearch trained with
    SGD <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDHandDenseOnSGD.ipynb>`__
+-  `Fuzzy GMDH Neural Net on 
+   Simplex <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDH_GDP.ipynb>`__
 
 Result Table
 ============
