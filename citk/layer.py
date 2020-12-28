@@ -721,7 +721,7 @@ class FuzzyGMDHLayer(BaseLayer):
         grouped_inputs = np.stack(grouped_inputs, axis=1)
         return grouped_inputs
 
-    def forward(self, inputs, param_vector):
+    def forward(self, inputs, param_vector, simplex=False):
         """
         Forward pass method
         
@@ -743,17 +743,19 @@ class FuzzyGMDHLayer(BaseLayer):
         """
         a = self.parser.get(param_vector, "a")
         c = self.parser.get(param_vector, "c")
-
         inputs = self._compute_grouped_arguments(inputs)
-
         if inputs.ndim > 2:
-            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
-        
-        conf_val = np.sqrt(np.abs(c)*np.log(np.power(self._confidence, -2)))
+                inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
 
-        vals = concat_and_multiply(a.T, inputs[:, :])
-        cvals = (1-self._confidence)*concat_and_multiply(c.T, np.abs(inputs[:, :])) 
-        return vals, cvals
+        if simplex:
+            return a, c, np.abs(inputs)[:,:], inputs[:,:]
+        else:
+            
+            conf_val = np.sqrt(np.abs(c)*np.log(np.power(self._confidence, -2)))
+
+            vals = concat_and_multiply(a.T, inputs[:, :])
+            cvals = (1-self._confidence)*concat_and_multiply(c.T, np.abs(inputs[:, :])) 
+            return vals, cvals
 
 
 class GMDHDense(BaseLayer):

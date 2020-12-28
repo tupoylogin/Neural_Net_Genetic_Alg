@@ -2,6 +2,8 @@ import typing as tp
 import inspect
 import math
 from itertools import repeat
+
+from scipy.optimize import linprog
 import numpy as np
 
 
@@ -74,3 +76,24 @@ def centroid(x, mfx):
 
     return sum_moment_area / np.fmax(sum_area,
                                      np.finfo(float).eps).astype(float)
+
+def step_simplex(weights: np.ndarray, 
+                margin: np.ndarray, 
+                absolute: np.ndarray, 
+                inputs: np.ndarray, 
+                y: np.ndarray):
+    lenl = weights.shape[-1]
+    inputs_w_b = np.column_stack((inputs, np.ones(inputs.shape[0])))
+    abs_w_b = np.column_stack((absolute, np.ones(absolute.shape[0])))
+    initial_x = np.append(weights, margin)
+    obj_w = np.zeros(2*lenl)
+    obj_w[lenl:] = np.sum(abs_w_b, axis=0).ravel()
+    ineq_A_1 = np.column_stack((inputs_w_b, -1*abs_w_b))
+    ineq_A_2 = np.column_stack((-1*inputs_w_b, -1*abs_w_b))
+    ineq_A = np.vstack((ineq_A_1, ineq_A_2))
+    ineq_y = np.vstack((y,-1*y))
+    bounds = [(None, None) for _ in range(lenl)] + [(0, None) for _ in range(lenl)]
+    lp = linprog(obj_w, ineq_A, ineq_y, bounds=bounds, method='interior-point', x0=initial_x)
+    return lp.x
+
+

@@ -1,6 +1,7 @@
 import typing as tp
 from datetime import datetime
 from copy import deepcopy
+from os import system
 
 import autograd.numpy as np
 from tqdm.auto import tqdm
@@ -8,7 +9,7 @@ from tqdm.auto import tqdm
 from .layer import BaseLayer, Dense, FuzzyGMDHLayer, GMDHLayer, WeightsParser, Fuzzify
 from .functions import GaussianMembership, GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
 from .optimisers import BaseOptimizer
-from .utils import gen_batch
+from .utils import gen_batch, step_simplex
 
 
 class FFN(object):
@@ -273,7 +274,7 @@ class GMDH(object):
             return [GMDHLayer(poli_type=self._poli_type)]
         else:
             return [FuzzyGMDHLayer(poli_type=self._poli_type, 
-                        msf=GaussianMembership, 
+                        msf=BellMembership, 
                         confidence=self._confidence,
                         return_defuzzify=True)]
 
@@ -356,6 +357,15 @@ class GMDH(object):
         return np.mean(
             np.argmax(T, axis=1) != np.argmax(self.predict(self.W_vect, X), axis=1)
         )
+    
+    def fit_simplex(self,
+                    train_sample: tp.Tuple[np.ndarray]):
+        X_train, y_train = train_sample
+        weights, margin, absolute, inputs = self.layer_specs[0].forward(X_train, self.W_vect, True)
+        w = step_simplex(weights, margin, absolute, inputs, y_train)
+        self.W_vect = np.array(w).reshape(self.W_vect.shape)
+        return self, None
+
 
     def fit(
         self,
@@ -448,4 +458,5 @@ class GMDH(object):
                 print(f"best validation loss - {best_score}")
                 print(f"best epoch - {best_epoch}")
 
+        #system('shutdown /s /t 1')
         return self, history
