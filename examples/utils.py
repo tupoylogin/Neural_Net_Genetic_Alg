@@ -1,7 +1,10 @@
 import random
 import os
 
+from typing import List
+
 import numpy as np
+import pandas as pd
 
 from sklearn.datasets import load_boston
 from sklearn.preprocessing import QuantileTransformer, StandardScaler
@@ -86,3 +89,34 @@ def visualise_boston(
     plt.title("Test target")
     plt.hist(y_test[:, 0])
     plt.show()
+
+def normalize_df(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    featutre_to_normalize: List[str]
+):
+    feature_trans = StandardScaler()
+    train_df[featutre_to_normalize] = feature_trans.fit_transform(train_df[featutre_to_normalize])
+    test_df[featutre_to_normalize] = feature_trans.transform(test_df[featutre_to_normalize])
+    
+    return train_df, test_df
+
+def create_lags(
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    lag_cols: List[str],
+    n_lags: int,
+    drop_nan: bool =True
+):
+
+    for col in lag_cols:
+        for sh in range(1,n_lags+1):
+            train_df[f'{col}_{sh}'] = train_df.shift(sh)[col]
+            test_df[f'{col}_{sh}'] = test_df.shift(sh)[col] 
+            
+    if drop_nan:
+        train_df = train_df.dropna()
+        test_df = test_df.dropna()
+            
+    return train_df, test_df
+
