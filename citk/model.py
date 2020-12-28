@@ -374,7 +374,7 @@ class GMDH(object):
             layer_val_preds = []
             layer_train_preds = []
 
-            for pair in all_possible_pairs:
+            for pair in tqdm(all_possible_pairs, desc="One fit"):
 
                 self.fit_simplex((train_sample[0][:,pair], train_sample[1]))
 
@@ -412,12 +412,12 @@ class GMDH(object):
 
             if minimize_metric and best_metric < overall_best_metric:
                 overall_best_metric = best_metric
-                best_test_pred = layer_val_preds[:,sorted_indices[0]][...,np.newaxis]
-                best_train_pred = layer_train_preds[:,sorted_indices[0]][...,np.newaxis]
+                best_test_pred = layer_val_preds[:,0][...,np.newaxis]
+                best_train_pred = layer_train_preds[:,0][...,np.newaxis]
             elif (not minimize_metric) and best_metric > overall_best_metric:
                 overall_best_metric = best_metric
-                best_test_pred = layer_val_preds[:,sorted_indices[0]][...,np.newaxis]
-                best_train_pred = layer_train_preds[:,sorted_indices[0]][...,np.newaxis]
+                best_test_pred = layer_val_preds[:,0][...,np.newaxis]
+                best_train_pred = layer_train_preds[:,0][...,np.newaxis]
             else:
                 break
 
