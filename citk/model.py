@@ -1,4 +1,5 @@
 import typing as tp
+import warnings
 from datetime import datetime
 from copy import deepcopy
 from os import system
@@ -11,7 +12,6 @@ from .layer import BaseLayer, Dense, FuzzyGMDHLayer, GMDHLayer, WeightsParser, F
 from .functions import GaussianMembership, GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
 from .optimisers import BaseOptimizer
 from .utils import gen_batch, step_simplex
-from .losses import MSE
 
 
 class FFN(object):
@@ -323,8 +323,9 @@ class GMDH(object):
         validation_sample: tp.Tuple[np.ndarray],
         max_gmdh_layers: int,
         n_best_to_take: int,
+        batch_size: tp.Optional[int] = None,
         minimize_metric: bool = True,
-        verbose: tp.Optional[bool] = None
+        verbose: tp.Optional[bool] = None,
     ):
         """
         Fit network on given input
@@ -346,6 +347,9 @@ class GMDH(object):
         :n_best_to_take: Number of best GMDH outputs that go to the next layer.
         :type n_best_to_take: int
 
+        :batch_size: If we have `long` data we can optimize it by batches.
+        :type batch_size: int
+
         :minimize_metric: Whether we minimize target metric.
         :type minimize_metric: bool
 
@@ -357,7 +361,6 @@ class GMDH(object):
         :returns: Tuple (trained_model, loss_history, best_test_pred, best_train_pred)
         :rtype: union[FFN, dict, np.array, np.array]
         """
-
         verbose = verbose if verbose else False
         
         all_possible_pairs = list(combinations(range(train_sample[0].shape[1]),2))
@@ -376,17 +379,42 @@ class GMDH(object):
 
             for pair in tqdm(all_possible_pairs, desc="One fit"):
 
-                self.fit_simplex((train_sample[0][:,pair], train_sample[1]))
+                if batch_size is not None and train_sample[0].shape[1] < batch_size:
+                    for (X, y) in gen_batch(train_sample, batch_size):
+                        
+                        try:
+                            self.fit_simplex((X[:,pair], y))
 
-                prediction_val = self.predict_one(validation_sample[0][:, pair])
-                prediction_train =  self.predict_one(train_sample[0][:,pair])
+                            prediction_val = self.predict_one(validation_sample[0][:, pair])
+                            prediction_train =  self.predict_one(train_sample[0][:,pair])
 
-                metric_val = self._loss(prediction_val, validation_sample[1])[0]
+                            
+                            metric_val = self._loss(prediction_val, validation_sample[1])[0]
 
-                layer_metrics.append(metric_val)
-                layer_val_preds.append(prediction_val)
-                layer_train_preds.append(prediction_train)
+                            layer_metrics.append(metric_val)
+                            layer_val_preds.append(prediction_val)
+                            layer_train_preds.append(prediction_train)
+                        except:
+                            warnings.warn("Something gone wrong in simplex")
+                            break
 
+            else:
+                try:
+                    self.fit_simplex((train_sample[0][:,pair], train_sample[1]))
+
+                    prediction_val = self.predict_one(validation_sample[0][:, pair])
+                    prediction_train =  self.predict_one(train_sample[0][:,pair])
+
+                    
+                    metric_val = self._loss(prediction_val, validation_sample[1])[0]
+
+                    layer_metrics.append(metric_val)
+                    layer_val_preds.append(prediction_val)
+                    layer_train_preds.append(prediction_train)
+                except:
+                    warnings.warn("Something gone wrong in simplex")
+                    break
+                    
             layer_metrics = np.array(layer_metrics)
             layer_val_preds = np.concatenate(layer_val_preds, axis=-1)
             layer_train_preds = np.concatenate(layer_train_preds, axis=-1)

@@ -750,9 +750,6 @@ class FuzzyGMDHLayer(BaseLayer):
         if simplex:
             return a, c, np.abs(inputs)[:,:], inputs[:,:]
         else:
-            
-            conf_val = np.sqrt(np.abs(c)*np.log(np.power(self._confidence, -2)))
-
             vals = concat_and_multiply(a.T, inputs[:, :])
             cvals = (1-self._confidence)*concat_and_multiply(c.T, np.abs(inputs[:, :])) 
             return vals, cvals
