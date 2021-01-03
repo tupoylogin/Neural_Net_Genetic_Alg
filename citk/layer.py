@@ -73,6 +73,7 @@ class BaseLayer:
     :param parser: Weights Parser
     :type parser: WeightsParser
     """
+
     def __init__(
         self, nonlinearity: tp.Callable[[tp.Any], np.ndarray], *args, **kwargs
     ):
@@ -114,6 +115,7 @@ class Conv2D(BaseLayer):
     ----------------------
     Useful for image classification tasks.
     """
+
     def __init__(
         self,
         kernel_shape: tp.Tuple[int],
@@ -175,7 +177,9 @@ class Conv2D(BaseLayer):
         )
         return conv + biases
 
-    def build_weights_dict(self, input_shape: tp.Tuple[int]) -> tp.Union[int, tp.Tuple[int]]:
+    def build_weights_dict(
+        self, input_shape: tp.Tuple[int]
+    ) -> tp.Union[int, tp.Tuple[int]]:
         """
         Weights builder
 
@@ -209,6 +213,7 @@ class MaxPool(BaseLayer):
     """
     Max Pooling layer
     """
+
     def __init__(
         self, pool_shape, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
     ):
@@ -287,7 +292,10 @@ class Dense(BaseLayer):
     -----------
     The essential building block of an ANN.
     """
-    def __init__(self, size: int, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs):
+
+    def __init__(
+        self, size: int, nonlinearity: tp.Callable[[tp.Any], np.ndarray], **kwargs
+    ):
         """
         Constructor method
 
@@ -358,6 +366,7 @@ class RBFDense(BaseLayer):
     ------------------------
     Building block of RBF-network
     """
+
     def __init__(self, hidden: int, out: int, **kwargs):
         """
         Constructor method
@@ -437,6 +446,7 @@ class Fuzzify(BaseLayer):
     ------------------------
     Main block for ANFIS-type networks
     """
+
     def __init__(
         self,
         num_rules: int,
@@ -526,10 +536,12 @@ class GMDHLayer(BaseLayer):
     -----------------------------------
     Building block of GMDH pipeline.
     """
+
     def __init__(
-        self, poli_type: str, 
-        #nonlinearity: tp.Callable[[tp.Any], np.ndarray], 
-        **kwargs
+        self,
+        poli_type: str,
+        # nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        **kwargs,
     ):
         """
         Constructor method
@@ -604,7 +616,7 @@ class GMDHLayer(BaseLayer):
         grouped_inputs = np.stack(grouped_inputs, axis=1)
         return grouped_inputs
 
-    def forward(self, inputs, param_vector):
+    def forward(self, inputs, param_vector, return_trans_input=False):
         """
         Forward pass method
         
@@ -629,6 +641,8 @@ class GMDHLayer(BaseLayer):
         if inputs.ndim > 2:
             inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
         inputs = self._compute_grouped_arguments(inputs)
+        if return_trans_input:
+            return inputs
         outputs = np.sum(inputs * params, axis=-1) + biases
         return outputs
 
@@ -639,10 +653,11 @@ class FuzzyGMDHLayer(BaseLayer):
     -----------------------------------
     Building block of FGMDH pipeline. Here we combined GMDH functionality and embed it into TSK controller
     """
+
     def __init__(
         self,
         poli_type: str,
-        #nonlinearity: tp.Callable[[tp.Any], np.ndarray],
+        # nonlinearity: tp.Callable[[tp.Any], np.ndarray],
         msf: tp.Callable[[tp.Any], np.ndarray],
         **kwargs,
     ):
@@ -674,8 +689,8 @@ class FuzzyGMDHLayer(BaseLayer):
         self.msf = msf
 
         self.input_size = None
-        self._confidence = kwargs.get('confidence', 0.8)
-        self._return_defuzzify = kwargs.get('return_defuzzify', False)
+        self._confidence = kwargs.get("confidence", 0.8)
+        self._return_defuzzify = kwargs.get("return_defuzzify", False)
         super().__init__(nonlinearity=Linear, **kwargs)
 
     def build_weights_dict(self, input_shape):
@@ -699,8 +714,8 @@ class FuzzyGMDHLayer(BaseLayer):
         input_size = nCr(input_size, 2)
 
         self.input_size = input_size
-        self.parser.add_weights("a", (1, input_size*self.n_weights + 1))
-        self.parser.add_weights("c", (1, input_size*self.n_weights + 1))
+        self.parser.add_weights("a", (1, input_size * self.n_weights + 1))
+        self.parser.add_weights("c", (1, input_size * self.n_weights + 1))
         return self.parser.N, (input_size,)
 
     def _compute_grouped_arguments(self, inputs):
@@ -745,13 +760,15 @@ class FuzzyGMDHLayer(BaseLayer):
         c = self.parser.get(param_vector, "c")
         inputs = self._compute_grouped_arguments(inputs)
         if inputs.ndim > 2:
-                inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
 
         if simplex:
-            return a, c, np.abs(inputs)[:,:], inputs[:,:]
+            return a, c, np.abs(inputs)[:, :], inputs[:, :]
         else:
             vals = concat_and_multiply(a.T, inputs[:, :])
-            cvals = (1-self._confidence)*concat_and_multiply(c.T, np.abs(inputs[:, :])) 
+            cvals = (1 - self._confidence) * concat_and_multiply(
+                c.T, np.abs(inputs[:, :])
+            )
             return vals, cvals
 
 
@@ -784,11 +801,13 @@ class GMDHDense(BaseLayer):
     def calc_input_shape(input_size: int, deg: int) -> int:
         return sum([input_size ** i for i in range(1, deg + 1)])
 
+
 class SimpleRNN(BaseLayer):
     """
     `Vanilla` Reccurent Neural Net
     ------------------------------
     """
+
     def __init__(self, units, size, **kwargs):
         """
         Constructor method
@@ -808,7 +827,7 @@ class SimpleRNN(BaseLayer):
 
     @staticmethod
     def _update_rnn(param, input, hiddens, nonlinearity):
-         return nonlinearity(concat_and_multiply(param, input, hiddens))
+        return nonlinearity(concat_and_multiply(param, input, hiddens))
 
     def build_weights_dict(self, input_shape):
         """
@@ -861,12 +880,14 @@ class SimpleRNN(BaseLayer):
             hiddens = self._update_rnn(change, input, hiddens, self.nonlinearity)
             output.append(self.nonlinearity(concat_and_multiply(predict, hiddens)))
         return output
-    
+
+
 class LSTM(BaseLayer):
     """
     Long Short-Term Memory cell
     ---------------------------
     """
+
     def __init__(self, units, size, **kwargs):
         """
         Constructor method
@@ -886,11 +907,11 @@ class LSTM(BaseLayer):
 
     @staticmethod
     def _update_rnn(params, input, hiddens, cells, nonlinearity):
-        change  = nonlinearity(concat_and_multiply(params['change'], input, hiddens))
-        forget  = Sigmoid(concat_and_multiply(params['forget'], input, hiddens))
-        ingate  = Sigmoid(concat_and_multiply(params['ingate'], input, hiddens))
-        outgate = Sigmoid(concat_and_multiply(params['outgate'], input, hiddens))
-        cells   = cells * forget + ingate * change
+        change = nonlinearity(concat_and_multiply(params["change"], input, hiddens))
+        forget = Sigmoid(concat_and_multiply(params["forget"], input, hiddens))
+        ingate = Sigmoid(concat_and_multiply(params["ingate"], input, hiddens))
+        outgate = Sigmoid(concat_and_multiply(params["outgate"], input, hiddens))
+        cells = cells * forget + ingate * change
         hiddens = outgate * nonlinearity(cells)
         return hiddens, cells
 
@@ -947,17 +968,21 @@ class LSTM(BaseLayer):
         outgate = self.parser.get(param_vector, "outgate")
         predict = self.parser.get(param_vector, "predict")
         num_sequences = inputs.shape[1]
-        dictp = {'change': change,
-                'forgate': forgate,
-                'ingate': ingate,
-                'outgate': outgate}
+        dictp = {
+            "change": change,
+            "forgate": forgate,
+            "ingate": ingate,
+            "outgate": outgate,
+        }
         hiddens = np.repeat(init_hiddens, num_sequences, axis=0)
         cells = np.repeat(init_cells, num_sequences, axis=0)
 
         output = [self.nonlinearity(concat_and_multiply(predict, hiddens))]
 
         for input in inputs:  # Iterate over time steps.
-            hiddens, cells = self._update_rnn(dictp, input, hiddens, cells, self.nonlinearity)
+            hiddens, cells = self._update_rnn(
+                dictp, input, hiddens, cells, self.nonlinearity
+            )
             output.append(self.nonlinearity(concat_and_multiply(predict, hiddens)))
 
         return output

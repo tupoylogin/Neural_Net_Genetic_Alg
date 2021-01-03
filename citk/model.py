@@ -7,9 +7,18 @@ from itertools import combinations
 
 import autograd.numpy as np
 from tqdm.auto import tqdm
+from numpy.linalg import lstsq
 
 from .layer import BaseLayer, Dense, FuzzyGMDHLayer, GMDHLayer, WeightsParser, Fuzzify
-from .functions import GaussianMembership, GaussianRBF, ReLU, Tanh, Sigmoid, Linear, BellMembership
+from .functions import (
+    GaussianMembership,
+    GaussianRBF,
+    ReLU,
+    Tanh,
+    Sigmoid,
+    Linear,
+    BellMembership,
+)
 from .optimisers import BaseOptimizer
 from .utils import gen_batch, step_simplex
 
@@ -19,6 +28,7 @@ class FFN(object):
     Feed Forward Network
     --------------------
     """
+
     def __init__(
         self,
         input_shape: tp.Tuple[int],
@@ -226,11 +236,13 @@ class FFN(object):
 
         return self, history
 
+
 class GMDH(object):
     """
     Group Method of Data Handling
     -----------------------------
     """
+
     def __init__(
         self,
         method_type: str,
@@ -254,9 +266,9 @@ class GMDH(object):
         :type mode: callable
         """
         self.parser = WeightsParser()
-        self._method_type = method_type,
+        self._method_type = method_type
         self._poli_type = poli_type
-        self._confidence = kwargs.get('confidence', 0.8)
+        self._confidence = kwargs.get("confidence", 0.8)
         self.layer_specs = self._construct_initial()
         cur_shape = 2
         W_vect = np.array([])
@@ -267,17 +279,23 @@ class GMDH(object):
             W_vect = np.append(W_vect, np.abs(layer.initializer(size=(N_weights,))))
         self._loss = loss
         self.W_vect = 0.1 * W_vect
-    
-    def _construct_initial(self):
-        if self._method_type == 'crisp':
-            return [GMDHLayer(poli_type=self._poli_type)]
-        else:
-            return [FuzzyGMDHLayer(poli_type=self._poli_type, 
-                        msf=BellMembership, 
-                        confidence=self._confidence,
-                        return_defuzzify=True)]
 
-    def predict_one(self, inputs: np.ndarray, return_uncertanity: bool = False) -> np.ndarray:
+    def _construct_initial(self):
+        if self._method_type == "crisp":
+            return [GMDHLayer(poli_type=self._poli_type)]
+        elif self._method_type == "fuuzy":
+            return [
+                FuzzyGMDHLayer(
+                    poli_type=self._poli_type,
+                    msf=BellMembership,
+                    confidence=self._confidence,
+                    return_defuzzify=True,
+                )
+            ]
+        else:
+            raise ValueError(f"{self._method_type} is invalid value for `method_type`")
+
+    def predict_one(self, inputs: np.ndarray, return_ful: bool = False) -> np.ndarray:
         """
         Predict one gmdh submodule method
 
@@ -293,7 +311,7 @@ class GMDH(object):
         :returns: Network response.
         :rtype: np.ndarray
         """
-        if return_uncertanity:
+        if return_ful:
             return self._predict(self.W_vect, inputs)
         return self._predict(self.W_vect, inputs)[0]
 
@@ -308,13 +326,26 @@ class GMDH(object):
         return np.mean(
             np.argmax(T, axis=1) != np.argmax(self.predict(self.W_vect, X), axis=1)
         )
-    
-    def fit_simplex(self,
-                    train_sample: tp.Tuple[np.ndarray]):
+
+    def fit_simplex(self, train_sample: tp.Tuple[np.ndarray]):
         X_train, y_train = train_sample
-        weights, margin, absolute, inputs = self.layer_specs[0].forward(X_train, self.W_vect, True)
+        weights, margin, absolute, inputs = self.layer_specs[0].forward(
+            X_train, self.W_vect, True
+        )
         w = step_simplex(weights, margin, absolute, inputs, y_train)
         self.W_vect = np.array(w).reshape(self.W_vect.shape)
+        return self, None
+
+    def fit_lstsq(self, train_sample: tp.Tuple[np.ndarray]):
+        X_train, y_train = train_sample
+        # Get grouped X_train
+        X_train_tr = self.layer_specs[0].forward(X_train, self.W_vect, True)
+        # Add bias
+        X_train_tr = np.concatenate(
+            (X_train_tr[:, 0, :], np.ones((X_train_tr.shape[0], 1))), axis=-1
+        )
+        # Compute LSTSQ
+        self.W_vect = lstsq(X_train_tr, y_train[:, 0])[0]
         return self, None
 
     def fit(
@@ -362,8 +393,9 @@ class GMDH(object):
         :rtype: union[FFN, dict, np.array, np.array]
         """
         verbose = verbose if verbose else False
-        
-        all_possible_pairs = list(combinations(range(train_sample[0].shape[1]),2))
+        is_fuzzy = self._method_type == "fuuzy"
+
+        all_possible_pairs = list(combinations(range(train_sample[0].shape[1]), 2))
 
         overall_best_metric = np.inf if minimize_metric else -np.inf
         best_test_pred = None
@@ -381,15 +413,23 @@ class GMDH(object):
 
                 if batch_size is not None and train_sample[0].shape[1] < batch_size:
                     for (X, y) in gen_batch(train_sample, batch_size):
-                        
+
                         try:
-                            self.fit_simplex((X[:,pair], y))
+                            if is_fuzzy:
+                                self.fit_simplex((X[:, pair], y))
+                            else:
+                                self.fit_lstsq((X[:, pair], y))
 
-                            prediction_val = self.predict_one(validation_sample[0][:, pair])
-                            prediction_train =  self.predict_one(train_sample[0][:,pair])
+                            prediction_val = self.predict_one(
+                                validation_sample[0][:, pair], not is_fuzzy
+                            )
+                            prediction_train = self.predict_one(
+                                train_sample[0][:, pair], not is_fuzzy
+                            )
 
-                            
-                            metric_val = self._loss(prediction_val, validation_sample[1])[0]
+                            metric_val = self._loss(
+                                prediction_val, validation_sample[1]
+                            )[0]
 
                             layer_metrics.append(metric_val)
                             layer_val_preds.append(prediction_val)
@@ -398,23 +438,31 @@ class GMDH(object):
                             warnings.warn("Something gone wrong in simplex")
                             break
 
-            else:
-                try:
-                    self.fit_simplex((train_sample[0][:,pair], train_sample[1]))
+                else:
+                    try:
+                        if is_fuzzy:
+                            self.fit_simplex(
+                                (train_sample[0][:, pair], train_sample[1])
+                            )
+                        else:
+                            self.fit_lstsq((train_sample[0][:, pair], train_sample[1]))
 
-                    prediction_val = self.predict_one(validation_sample[0][:, pair])
-                    prediction_train =  self.predict_one(train_sample[0][:,pair])
+                        prediction_val = self.predict_one(
+                            validation_sample[0][:, pair], not is_fuzzy
+                        )
+                        prediction_train = self.predict_one(
+                            train_sample[0][:, pair], not is_fuzzy
+                        )
 
-                    
-                    metric_val = self._loss(prediction_val, validation_sample[1])[0]
+                        metric_val = self._loss(prediction_val, validation_sample[1])[0]
 
-                    layer_metrics.append(metric_val)
-                    layer_val_preds.append(prediction_val)
-                    layer_train_preds.append(prediction_train)
-                except:
-                    warnings.warn("Something gone wrong in simplex")
-                    break
-                    
+                        layer_metrics.append(metric_val)
+                        layer_val_preds.append(prediction_val)
+                        layer_train_preds.append(prediction_train)
+                    except:
+                        warnings.warn("Something gone wrong in simplex")
+                        break
+
             layer_metrics = np.array(layer_metrics)
             layer_val_preds = np.concatenate(layer_val_preds, axis=-1)
             layer_train_preds = np.concatenate(layer_train_preds, axis=-1)
@@ -425,30 +473,31 @@ class GMDH(object):
                 sorted_indices = np.argsort(-layer_metrics)
 
             best_metric = layer_metrics[sorted_indices[0]]
-            history['metric'].append(best_metric)
+            history["metric"].append(best_metric)
 
-            layer_val_preds = layer_val_preds[:,sorted_indices]
-            validation_sample = (layer_val_preds[:,:n_best_to_take], validation_sample[1])
+            layer_val_preds = layer_val_preds[:, sorted_indices]
+            validation_sample = (
+                layer_val_preds[:, :n_best_to_take],
+                validation_sample[1],
+            )
 
-            layer_train_preds = layer_train_preds[:,sorted_indices]
-            train_sample = (layer_train_preds[:,:n_best_to_take], train_sample[1])
+            layer_train_preds = layer_train_preds[:, sorted_indices]
+            train_sample = (layer_train_preds[:, :n_best_to_take], train_sample[1])
 
-            all_possible_pairs = list(combinations(range(train_sample[0].shape[1]),2))
+            all_possible_pairs = list(combinations(range(train_sample[0].shape[1]), 2))
 
             if verbose:
                 print(f"Layer: {r}. Metric: {best_metric}")
 
             if minimize_metric and best_metric < overall_best_metric:
                 overall_best_metric = best_metric
-                best_test_pred = layer_val_preds[:,0][...,np.newaxis]
-                best_train_pred = layer_train_preds[:,0][...,np.newaxis]
+                best_test_pred = layer_val_preds[:, 0][..., np.newaxis]
+                best_train_pred = layer_train_preds[:, 0][..., np.newaxis]
             elif (not minimize_metric) and best_metric > overall_best_metric:
                 overall_best_metric = best_metric
-                best_test_pred = layer_val_preds[:,0][...,np.newaxis]
-                best_train_pred = layer_train_preds[:,0][...,np.newaxis]
+                best_test_pred = layer_val_preds[:, 0][..., np.newaxis]
+                best_train_pred = layer_train_preds[:, 0][..., np.newaxis]
             else:
                 break
 
-
         return self, history, best_test_pred, best_train_pred
-
