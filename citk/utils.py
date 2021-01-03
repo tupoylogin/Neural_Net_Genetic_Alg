@@ -101,3 +101,15 @@ def step_simplex(
         obj_w, ineq_A, ineq_y, bounds=bounds, method="interior-point", x0=initial_x
     )
     return lp.x
+
+
+def check_na(input: np.ndarray):
+    return np.any(np.isnan(input))
+
+
+def check_inf(input: np.ndarray):
+    return np.any(np.isinf(input))
+
+
+def check_numerical_stability(input: np.ndarray):
+    return check_na(input) or check_inf(input)
