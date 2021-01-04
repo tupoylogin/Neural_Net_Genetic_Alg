@@ -16,6 +16,7 @@ class BaseOptimizer:
     --------------
     All custom optimizers should inherit this class
     """
+
     def __init__(self, *args, **kwargs):
         """
         Counstructor method
@@ -33,6 +34,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
     """
     `Vanilla` Genetic Algorithm.
     """
+
     def __init__(self, num_population: int, k: int = 5, **kwargs):
         """
         Constructor method
@@ -215,6 +217,7 @@ class SGDOptimizer(BaseOptimizer):
     """
     Stochastic Gradient Descent Optimizer
     """
+
     def __init__(self, alpha: float = 0.0, eta: float = 1e-3, **kwargs):
         """
         Constructor method
@@ -287,6 +290,7 @@ class ConjugateSGDOptimizer(BaseOptimizer):
     """
     Conjugate Stochastic Gradient Descent Optimiser
     """
+
     def __init__(self, eta: float = 1e-3, **kwargs):
         """
         Constructor method
@@ -366,5 +370,3 @@ class ConjugateSGDOptimizer(BaseOptimizer):
             to_stop = False
 
         return to_stop, W, self._score[-1]
-
-SimplexOptimizer = SGDOptimizer

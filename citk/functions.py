@@ -259,25 +259,33 @@ def GaussianMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarra
 
     """
     return np.clip(
-        np.exp(-(np.power((x - c), 2) / np.clip(2*np.power(a, 2), EPS, None))), EPS, None
+        np.exp(-(np.power((x - c), 2) / np.clip(2 * np.power(a, 2), EPS, None))),
+        EPS,
+        None,
     )
 
 
-def Poly(x: np.ndarray, deg: int, type: tp.Optional[str] = 'full'):
+def Poly(x: np.ndarray, deg: int, type: tp.Optional[str] = "full"):
     inp_size = x.shape[1]
     X_p = np.empty(x.shape)
-    #arrange every pair of input vectors
-    indices_n_wise = combinations(range(inp_size),2)
-    if deg <2 :
+    # arrange every pair of input vectors
+    indices_n_wise = combinations(range(inp_size), 2)
+    if deg < 2:
         for idx in indices_n_wise:
             X_p = np.append(x[:, idx], axis=1)
     else:
         for idx in indices_n_wise:
-            #full degree polymone
-            indices_to_mul = sum([list(combinations_with_replacement(idx, i)) for i in range(2, deg+1)], [])
-            if type=='partial':
-                #partial degree polynome
-                indices_to_mul = filter(lambda x: len(set(x))>1, indices_to_mul)
+            # full degree polymone
+            indices_to_mul = sum(
+                [
+                    list(combinations_with_replacement(idx, i))
+                    for i in range(2, deg + 1)
+                ],
+                [],
+            )
+            if type == "partial":
+                # partial degree polynome
+                indices_to_mul = filter(lambda x: len(set(x)) > 1, indices_to_mul)
             for ind in indices_to_mul:
                 pf = np.prod(x[:, ind], axis=1)[:, np.newaxis]
                 X_p = np.append(X_p, pf, axis=1)

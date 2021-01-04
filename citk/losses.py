@@ -7,10 +7,12 @@ def MSE(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Mean Squared Loss"""
     return np.mean((y_true - y_pred) ** 2, 0)
 
+
 def FMSE(pred: tp.Tuple[np.ndarray], y_true: np.ndarray) -> float:
     """Fuzzy-Mean Squared Loss"""
     y_pred, intervals = pred
-    return np.sum(intervals, 0) + 0.5*(np.mean((y_true - y_pred) ** 2, 0))
+    return np.sum(intervals, 0) + 0.5 * (np.mean((y_true - y_pred) ** 2, 0))
+
 
 def MAE(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     "Mean Average Loss"
