@@ -25,12 +25,16 @@ Examples
    SGD <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/BackPropogationConjugateSGD.ipynb>`__
 -  `ANFIS Neural Net trained with
    SGD <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/AnfisSGD.ipynb>`__
--  `GMDH Neural Net with Layer Hypersearch trained with
+-  `GroupedMethod+Dense Neural Net with Layer Hypersearch trained with 
    SGD <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GMDHandDenseOnSGD.ipynb>`__
--  `Fuzzy GMDH Neural Net with batching on
-   Simplex <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDH.ipynb>`__
--  `Fuzzy GMDH Neural Net on 
-   Simplex <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDH_GDP.ipynb>`__
+-  `GMDH Neural Net with batching on 
+   LSM <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GMDH.ipynb>`__
+-  `Fuzzy GMDH Neural Net with batching on 
+   Linear Programming <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDH.ipynb>`__
+-  `GMDH Neural Net on LSM on 
+   Time Series data <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/GMDH_GDP.ipynb>`__
+-  `Fuzzy GMDH Neural Net on Linear Programming on 
+   Time Series data <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/FuzzyGMDH_GDP.ipynb>`__
 
 Result Table
 ============
@@ -50,21 +54,23 @@ code <https://github.com/tupoylogin/Neural_Net_Genetic_Alg/blob/main/examples/ut
 
 Metric - MSE on normalized data
 
-+----------------------+---------------+--------------+
-| Experiment name      | Train score   | Test score   |
-+======================+===============+==============+
-| MLP+Genetic          | 0.455         | 0.645        |
-+----------------------+---------------+--------------+
-| MLP+SGD              | 0.323         | 0.590        |
-+----------------------+---------------+--------------+
-| MLP+(Genetic->SGD)   | 0.284         | 0.558        |
-+----------------------+---------------+--------------+
-| MLP+Conjugate SGD    | 0.367         | 0.563        |
-+----------------------+---------------+--------------+
-| ANFIS+SGD            | 0.621         | 0.768        |
-+----------------------+---------------+--------------+
-| GMDH+SGD             | 0.191         | 0.386        |
-+----------------------+---------------+--------------+
-| FuzzyGMDH+SGD        | 0.281         | 0.279        |
-+----------------------+---------------+--------------+
++-------------------------------------+---------------+--------------+
+| Experiment name                     | Train score   | Test score   |
++=====================================+===============+==============+
+| MLP+Genetic                         | 0.508         | 0.746        |
++-------------------------------------+---------------+--------------+
+| MLP+SGD                             | 0.233         | 0.669        |
++-------------------------------------+---------------+--------------+
+| MLP+(Genetic->SGD)                  | 0.244         | 0.636        |
++-------------------------------------+---------------+--------------+
+| MLP+Conjugate SGD                   | 0.307         | 0.650        |
++-------------------------------------+---------------+--------------+
+| ANFIS+SGD                           | 0.561         | 0.759        |
++-------------------------------------+---------------+--------------+
+| GroupedMethod+Dense+SGD+LayerSearch | 0.191         | 0.386        |
++-------------------------------------+---------------+--------------+
+| GMDH                                | 0.732         | 0.423        |
++-------------------------------------+---------------+--------------+
+| FuzzyGMDH                           | 94.0          | 0.432        |
++-------------------------------------+---------------+--------------+
 
