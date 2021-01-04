@@ -319,7 +319,7 @@ class GMDH(object):
 
     def predict(self, inputs: np.ndarray) -> np.ndarray:
         """
-        Predict one gmdh submodule method
+        Predict all gmdh path 
 
         Parameters
         ----------
@@ -405,13 +405,14 @@ class GMDH(object):
         prediction_train = self.predict_one(train_sample[0][:, pair], not is_fuzzy)
 
         metric_val = self._loss(prediction_val, validation_sample[1])[0]
+        metric_train = self._loss(prediction_train, train_sample[1])[0]
 
         if check_numerical_stability(prediction_train) or check_numerical_stability(
             prediction_val
         ):
-            return None, None, None, True
+            return None, None, None, None, True
         else:
-            return metric_val, prediction_val, prediction_train, False
+            return metric_val, metric_train, prediction_val, prediction_train, False
 
     def fit(
         self,
@@ -466,11 +467,12 @@ class GMDH(object):
         best_test_pred = None
         best_train_pred = None
 
-        history = dict(metric=[])
+        history = dict(layer=[], train_loss=[], validation_loss=[])
 
         for r in tqdm(range(max_gmdh_layers), desc="Training "):
 
             layer_metrics = []
+            layer_metrics_train = []
             layer_val_preds = []
             layer_train_preds = []
 
@@ -485,6 +487,7 @@ class GMDH(object):
 
                         (
                             metric_val,
+                            metric_train,
                             prediction_val,
                             prediction_train,
                             stop_outer_loop,
@@ -503,6 +506,7 @@ class GMDH(object):
                             break
 
                         layer_metrics.append(metric_val)
+                        layer_metrics_train.append(metric_train)
                         layer_val_preds.append(prediction_val)
                         layer_train_preds.append(prediction_train)
 
@@ -515,6 +519,7 @@ class GMDH(object):
 
                     (
                         metric_val,
+                        metric_train,
                         prediction_val,
                         prediction_train,
                         stop_outer_loop,
@@ -529,6 +534,7 @@ class GMDH(object):
                         break
 
                     layer_metrics.append(metric_val)
+                    layer_metrics_train.append(metric_train)
                     layer_val_preds.append(prediction_val)
                     layer_train_preds.append(prediction_train)
 
@@ -540,6 +546,7 @@ class GMDH(object):
                 break
 
             layer_metrics = np.array(layer_metrics)
+            layer_metrics_train = np.array(layer_metrics_train)
             layer_val_preds = np.concatenate(layer_val_preds, axis=-1)
             layer_train_preds = np.concatenate(layer_train_preds, axis=-1)
 
@@ -549,7 +556,8 @@ class GMDH(object):
                 sorted_indices = np.argsort(-layer_metrics)
 
             best_metric = layer_metrics[sorted_indices[0]]
-            history["metric"].append(best_metric)
+            history["validation_loss"].append(best_metric)
+            history["train_loss"].append(layer_metrics_train[sorted_indices[0]])
 
             layer_val_preds = layer_val_preds[:, sorted_indices]
             validation_sample = (
