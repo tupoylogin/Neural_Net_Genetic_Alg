@@ -26,7 +26,7 @@ def ReLU(x: np.ndarray) -> np.ndarray:
     Linear : linear activation function.
     Sigmoid : sigmoid activation function.
     Tanh : hyperbolic tangent activation function.
- 
+
     Note
     -----
     When scalar is passed, scalar is returned, so it is recommended to convert scalar into 1-d array instead.
@@ -138,7 +138,7 @@ def Tanh(x: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    
+
     :return: res = (exp(x_i)-exp(-x_i))/(exp(x_i)+exp(-x_i)) for x_i in x.
     :rtype: np.ndarray
 
@@ -192,7 +192,7 @@ def GaussianRBF(x: np.ndarray, c: np.ndarray, r: np.ndarray) -> np.ndarray:
 
     :param c: Centroid array.
     :type c: np.ndarray
-    
+
     :param r: Standard deviation array.
     :type r: np.ndarray
 
@@ -221,7 +221,7 @@ def BellMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarray:
 
     :param c: Centroid array.
     :type c: np.ndarray
-    
+
     :param a: Bandwith.
     :type a: np.ndarray
 
@@ -248,7 +248,7 @@ def GaussianMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarra
 
     :param c: Centroid array.
     :type c: np.ndarray
-    
+
     :param a: Bandwith.
     :type a: np.ndarray
 
@@ -265,7 +265,33 @@ def GaussianMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarra
     )
 
 
-def Poly(x: np.ndarray, deg: int, type: tp.Optional[str] = "full"):
+def TriangularMembership(x: np.ndarray, c: np.ndarray, a: np.ndarray) -> np.ndarray:
+    """
+    Triangular Membership Function
+
+    Parameters
+    ----------
+
+    :param x: Input array.
+    :type x: np.ndarray
+
+    :param a: Centroid array.
+    :type a: np.ndarray
+
+    :param c: Spread.
+    :type c: np.ndarray
+
+
+    Returns
+    -------
+    :return: 0 if x<(a-c) or x>(a+c), 1 - |x-a|/c otherwise.
+    :rtype: np.ndarray
+
+    """
+    return np.maximum(0, 1.0 - np.abs(x - a) / c)
+
+
+def Poly(x: np.ndarray, deg: int, *, type: tp.Optional[str] = "full"):
     inp_size = x.shape[1]
     X_p = np.empty(x.shape)
     # arrange every pair of input vectors
