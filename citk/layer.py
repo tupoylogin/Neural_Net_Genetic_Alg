@@ -132,10 +132,10 @@ class Conv2D(BaseLayer):
 
         :kernel_shape: Convolution kernel shape.
         :type kernel_shape: tuple
-        
+
         :num_filters: Number of convolutional filters
         :type num_filters: int
-        
+
         :mode: Convolution mode aka padding. Must be either `valid` or `same`
         :type mode: str
 
@@ -150,19 +150,19 @@ class Conv2D(BaseLayer):
     def forward(self, inputs: np.ndarray, param_vector: np.ndarray) -> np.ndarray:
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of convolution
         :rtype: np.ndarray
 
@@ -192,7 +192,7 @@ class Conv2D(BaseLayer):
         Returns
         -------
 
-        :return: union object (number_of_weights, _output_shape) 
+        :return: union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape : [color, y, x] (don't need to know number of data yet)
@@ -225,7 +225,7 @@ class MaxPool(BaseLayer):
 
         :pool_shape: Max pooling shape.
         :type kernel_shape: tuple
-        
+
         :nonlinearity: Activation function.
         :type nonlinearity: callable
         """
@@ -245,7 +245,7 @@ class MaxPool(BaseLayer):
         Returns
         -------
 
-        :return: union object (number_of_weights, _output_shape) 
+        :return: union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # input_shape dimensions: [color, y, x]
@@ -260,19 +260,19 @@ class MaxPool(BaseLayer):
     def forward(self, inputs: np.ndarray, param_vector: np.ndarray):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights. (ingored)
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of pooling
         :rtype: np.ndarray
 
@@ -324,7 +324,7 @@ class Dense(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape is anything (all flattened)
@@ -336,19 +336,19 @@ class Dense(BaseLayer):
     def forward(self, inputs, param_vector):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Nonlinearity applied to matrix multiplicationbetween weights and input
         :rtype: np.ndarray
 
@@ -398,7 +398,7 @@ class RBFDense(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape is anything (all flattened)
@@ -412,19 +412,19 @@ class RBFDense(BaseLayer):
     def forward(self, inputs, param_vector):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Nonlinearity applied to matrix multiplicationbetween weights and input
         :rtype: np.ndarray
 
@@ -487,32 +487,44 @@ class Fuzzify(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape is anything (all flattened)
         input_size = np.prod(input_shape, dtype=int)
-        self.parser.add_weights("a", (input_size, self.size,))
-        self.parser.add_weights("c", (input_size, self.size,))
+        self.parser.add_weights(
+            "a",
+            (
+                input_size,
+                self.size,
+            ),
+        )
+        self.parser.add_weights(
+            "c",
+            (
+                input_size,
+                self.size,
+            ),
+        )
         self.parser.add_weights("r", (self.size,))
         return self.parser.N, (self.size,)
 
     def forward(self, inputs, param_vector):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of fuzzy-consequence
         :rtype: np.ndarray
 
@@ -527,6 +539,90 @@ class Fuzzify(BaseLayer):
         w = np.prod(w, axis=1)
         f = np.sum(a * inputs, axis=1) + r
         o = w * f / np.sum(w, axis=1, keepdims=True)
+        return self.nonlinearity(o)
+
+
+class NeoFuzzyLayer(BaseLayer):
+    def __init__(
+        self, num_rules: int, msf: tp.Callable[[tp.Any], np.ndarray], **kwargs
+    ):
+        self.size = num_rules
+        self.msf = msf
+        super().__init__(nonlinearity=Linear, **kwargs)
+
+    def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape)
+        :rtype: union
+        """
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        self.parser.add_weights(
+            "a",
+            (
+                1,
+                input_size,
+                self.size,
+            ),
+        )
+        self.parser.add_weights(
+            "c",
+            (
+                1,
+                input_size,
+                self.size,
+            ),
+        )
+        self.parser.add_weights(
+            "w",
+            (
+                1,
+                input_size,
+                self.size,
+            ),
+        )
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+
+        Returns
+        -------
+
+        :return: Result of fuzzy-consequence
+        :rtype: np.ndarray
+
+        """
+        a = self.parser.get(param_vector, "a")
+        c = self.parser.get(param_vector, "c")
+        w = self.parser.get(param_vector, "w")
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = inputs[..., np.newaxis]
+        msfs = self.msf(inputs, c, a)
+        f = np.sum(msfs * w, axis=-1)
+        o = np.sum(f, axis=1, keepdims=True)
         return self.nonlinearity(o)
 
 
@@ -558,7 +654,7 @@ class GMDHLayer(BaseLayer):
         Raises
         ------
         :raises ValueError: Incorrect poli_type
-        
+
         """
         if poli_type == "linear":
             self.n_weights = 2
@@ -585,7 +681,7 @@ class GMDHLayer(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape is anything (all flattened)
@@ -619,19 +715,19 @@ class GMDHLayer(BaseLayer):
     def forward(self, inputs, param_vector, return_trans_input=False):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Polynome of input.
         :rtype: np.ndarray
 
@@ -706,7 +802,7 @@ class FuzzyGMDHLayer(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         # Input shape is anything (all flattened)
@@ -739,19 +835,19 @@ class FuzzyGMDHLayer(BaseLayer):
     def forward(self, inputs, param_vector, simplex=False):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of fuzzy-consequence over polynome of input
         :rtype: np.ndarray
 
@@ -842,7 +938,7 @@ class SimpleRNN(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         self.parser.add_weights("init_hiddens", (1, self.units))
@@ -853,19 +949,19 @@ class SimpleRNN(BaseLayer):
     def forward(self, inputs, param_vector):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of RNN operations.
         :rtype: np.ndarray
         """
@@ -928,7 +1024,7 @@ class LSTM(BaseLayer):
         Returns
         -------
 
-        :return: Union object (number_of_weights, _output_shape) 
+        :return: Union object (number_of_weights, _output_shape)
         :rtype: union
         """
         self.parser.add_weights("init_cells", (1, self.units))
@@ -943,19 +1039,19 @@ class LSTM(BaseLayer):
     def forward(self, inputs, param_vector):
         """
         Forward pass method
-        
+
         Parameters
         ----------
 
         :inputs: Input matrix.
         :type inputs: np.ndarray
-        
+
         :param_vector: Vector of network's weights.
         :type param_vector: np.ndarray
-        
+
         Returns
         -------
-        
+
         :return: Result of LSTM operations.
         :rtype: np.ndarray
 

@@ -67,7 +67,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         :type layers_list: list
         :param weight_init: Weight distribution function.
         :type weight_init: callable
-        
+
         Returns
         -------
         :returns: Initalized weights.
@@ -86,7 +86,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         :type ind_1: np.ndarray
         :param ind_2: FFN layers weights, second individual
         :type ind_2: np.ndarray
-        
+
         Returns
         -------
 
@@ -119,7 +119,7 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
 
         :param factor: scale factor of mutation
         :type factor: float
-        
+
         Returns
         -------
         :returns: Generated individual
@@ -153,12 +153,12 @@ class GeneticAlgorithmOptimizer(BaseOptimizer):
         :param input_tensor: Global input to FFN, i.e. your `X` variable
         :type input_tensor:  np.ndarray
 
-        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable
         :type output_tensor: np.ndarray
-        
+
         :param W: Initial network weights
         :type W: np.ndarray
-        
+
         Returns
         -------
 
@@ -258,12 +258,12 @@ class SGDOptimizer(BaseOptimizer):
         :param input_tensor: Global input to FFN, i.e. your `X` variable
         :type input_tensor:  np.ndarray
 
-        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable
         :type output_tensor: np.ndarray
-        
+
         :param W: Initial network weights
         :type W: np.ndarray
-        
+
         Returns
         -------
 
@@ -278,7 +278,11 @@ class SGDOptimizer(BaseOptimizer):
         self._score.append(loss(W, input_tensor, output_tensor)[0])
         if verbose:
             print(f"train score - {self._score[-1]}")
-        grad_W = np.clip(loss_grad(W, input_tensor, output_tensor), -1e6, 1e6,)
+        grad_W = np.clip(
+            loss_grad(W, input_tensor, output_tensor),
+            -1e6,
+            1e6,
+        )
         if self._score[-1] <= self._tol:
             to_stop = True
         self._v_t = self._alpha * self._v_t + (1.0 - self._alpha) * grad_W
@@ -331,12 +335,12 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         :param input_tensor: Global input to FFN, i.e. your `X` variable
         :type input_tensor:  np.ndarray
 
-        :param output_tensor: Desired FFN response, i.e. your `Y` variable 
+        :param output_tensor: Desired FFN response, i.e. your `Y` variable
         :type output_tensor: np.ndarray
-        
+
         :param W: Initial network weights
         :type W: np.ndarray
-        
+
         Returns
         -------
 
@@ -350,7 +354,11 @@ class ConjugateSGDOptimizer(BaseOptimizer):
         if verbose:
             print(f"train score - {self._score[-1]}")
 
-        g = np.clip(loss_grad(W, input_tensor, output_tensor), -1e6, 1e6,)
+        g = np.clip(
+            loss_grad(W, input_tensor, output_tensor),
+            -1e6,
+            1e6,
+        )
         d = W.shape[0]
 
         if (self._k == 0) or (d % self._k == 0):

@@ -9,7 +9,15 @@ import autograd.numpy as np
 from tqdm.auto import tqdm
 from numpy.linalg import lstsq
 
-from .layer import BaseLayer, Dense, FuzzyGMDHLayer, GMDHLayer, WeightsParser, Fuzzify
+from .layer import (
+    BaseLayer,
+    Dense,
+    FuzzyGMDHLayer,
+    GMDHLayer,
+    NeoFuzzyLayer,
+    WeightsParser,
+    Fuzzify,
+)
 from .functions import (
     GaussianMembership,
     GaussianRBF,
@@ -18,8 +26,9 @@ from .functions import (
     Sigmoid,
     Linear,
     BellMembership,
+    TriangularMembership,
 )
-from .optimisers import BaseOptimizer
+from .optimisers import BaseOptimizer, SGDOptimizer
 from .utils import gen_batch, step_simplex, check_numerical_stability
 
 
@@ -44,10 +53,10 @@ class FFN(object):
 
         :param input_shape: Input shape.
         :type input_shape: tuple
-        
+
         :param layer_specs: List containing layers.
         :type layer_specs: list
-        
+
         :param loss: Loss function.
         :type mode: callable
         """
@@ -76,10 +85,10 @@ class FFN(object):
 
         :W_vect: Network weights vector.
         :type W_vect: np.ndarray
-        
+
         :X: Input vector.
         :type X: np.ndarray
-        
+
         :y: Desired network response.
         :type y: np.ndarray
 
@@ -246,7 +255,6 @@ class GMDH(object):
     def __init__(
         self,
         method_type: str,
-        poli_type: str,
         loss: tp.Callable[..., np.ndarray],
         **kwargs,
     ) -> None:
@@ -256,19 +264,21 @@ class GMDH(object):
         Parameters
         ----------
 
-        :param method_type: Type of algorithm, `fuzzy` or `crisp`.
+        :param method_type: Type of algorithm, `fuzzy`, `neo_fuzzy` or `crisp`.
         :type method_type: str
 
         :param poli_type: Type of polinome, `linear`, 'quadratiic` or `partial_quadratic`.
         :type poli_type: str
-        
+
         :param loss: Loss function.
         :type mode: callable
         """
         self.parser = WeightsParser()
         self._method_type = method_type
-        self._poli_type = poli_type
+        self._poli_type = kwargs.get("poli_type", "linear")
+        self._num_rules = kwargs.get("num_rules", 3)
         self._confidence = kwargs.get("confidence", 0.8)
+        self._num_sgd_rounds = kwargs.get("num_sgd_rounds", 50)
         self.layer_specs = self._construct_initial()
         cur_shape = 2
         W_vect = np.array([])
@@ -285,6 +295,8 @@ class GMDH(object):
     def _construct_initial(self):
         if self._method_type == "crisp":
             return [GMDHLayer(poli_type=self._poli_type)]
+        elif self._method_type == "neo_fuzzy":
+            return [NeoFuzzyLayer(num_rules=self._num_rules, msf=TriangularMembership)]
         elif self._method_type == "fuzzy":
             return [
                 FuzzyGMDHLayer(
@@ -319,7 +331,7 @@ class GMDH(object):
 
     def predict(self, inputs: np.ndarray) -> np.ndarray:
         """
-        Predict all gmdh path 
+        Predict all gmdh path
 
         Parameters
         ----------
@@ -356,6 +368,27 @@ class GMDH(object):
         # Take best, which is first
         return current_inputs[:, 0][..., np.newaxis]
 
+    def loss(self, W_vect: np.ndarray, X: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """
+        Loss function constructor
+
+        Parameters
+        ----------
+
+        :W_vect: Network weights vector.
+        :type W_vect: np.ndarray
+
+        :X: Input vector.
+        :type X: np.ndarray
+
+        :y: Desired network response.
+        :type y: np.ndarray
+
+        :omit_reg: Omit regularization flag. Default is `False`
+        :type omit_reg: bool
+        """
+        return self._loss(self.layer_specs[0].forward(X, W_vect), y)
+
     def _predict(self, W_vect: np.ndarray, inputs: np.ndarray) -> np.ndarray:
         cur_units = inputs
         for layer in self.layer_specs:
@@ -389,20 +422,37 @@ class GMDH(object):
         self.W_vect = lstsq(X_train_tr, y_train[:, 0])[0]
         return self, None
 
+    def fit_sgd(self, train_sample: tp.Tuple[np.ndarray]):
+        X_train, y_train = train_sample
+        W_vect = np.random.default_rng(42).normal(size=self.W_vect.shape)
+        optimiser = SGDOptimizer()
+        for iter in range(self._num_sgd_rounds):
+            to_stop, inst, _ = optimiser.apply(self.loss, X_train, y_train, W_vect)
+            self.W_vect = inst
+            if to_stop:
+                break
+
+        return self, None
+
     def one_fit(
         self,
-        is_fuzzy: bool,
         train_sample: tp.Tuple[np.ndarray],
         validation_sample: tp.Tuple[np.ndarray],
         pair: tp.Tuple[int, int],
     ):
-        if is_fuzzy:
+        if self._method_type == "fuzzy":
             self.fit_simplex((train_sample[0][:, pair], train_sample[1]))
+        elif self._method_type == "neo_fuzzy":
+            self.fit_sgd((train_sample[0][:, pair], train_sample[1]))
         else:
             self.fit_lstsq((train_sample[0][:, pair], train_sample[1]))
 
-        prediction_val = self.predict_one(validation_sample[0][:, pair], not is_fuzzy)
-        prediction_train = self.predict_one(train_sample[0][:, pair], not is_fuzzy)
+        prediction_val = self.predict_one(
+            validation_sample[0][:, pair], not (self._method_type == "fuzzy")
+        )
+        prediction_train = self.predict_one(
+            train_sample[0][:, pair], not (self._method_type == "fuzzy")
+        )
 
         metric_val = self._loss(prediction_val, validation_sample[1])[0]
         metric_train = self._loss(prediction_train, train_sample[1])[0]
@@ -459,7 +509,6 @@ class GMDH(object):
         :rtype: union[FFN, dict, np.array, np.array]
         """
         verbose = verbose if verbose else False
-        is_fuzzy = self._method_type == "fuzzy"
 
         all_possible_pairs = list(combinations(range(train_sample[0].shape[1]), 2))
 
@@ -492,7 +541,6 @@ class GMDH(object):
                             prediction_train,
                             stop_outer_loop,
                         ) = self.one_fit(
-                            is_fuzzy=is_fuzzy,
                             train_sample=(X, y),
                             validation_sample=validation_sample,
                             pair=pair,
@@ -524,7 +572,6 @@ class GMDH(object):
                         prediction_train,
                         stop_outer_loop,
                     ) = self.one_fit(
-                        is_fuzzy=is_fuzzy,
                         train_sample=train_sample,
                         validation_sample=validation_sample,
                         pair=pair,
