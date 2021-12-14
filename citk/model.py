@@ -296,7 +296,7 @@ class GMDH(object):
         if self._method_type == "crisp":
             return [GMDHLayer(poli_type=self._poli_type)]
         elif self._method_type == "neo_fuzzy":
-            return [NeoFuzzyLayer(num_rules=self._num_rules, msf=TriangularMembership)]
+            return [NeoFuzzyLayer(num_rules=self._num_rules, msf=BellMembership)]
         elif self._method_type == "fuzzy":
             return [
                 FuzzyGMDHLayer(
@@ -425,7 +425,7 @@ class GMDH(object):
     def fit_sgd(self, train_sample: tp.Tuple[np.ndarray]):
         X_train, y_train = train_sample
         W_vect = np.random.default_rng(42).normal(size=self.W_vect.shape)
-        optimiser = SGDOptimizer()
+        optimiser = SGDOptimizer(alpha=0.01, eta=1e-2)
         for iter in range(self._num_sgd_rounds):
             to_stop, inst, _ = optimiser.apply(self.loss, X_train, y_train, W_vect)
             self.W_vect = inst
