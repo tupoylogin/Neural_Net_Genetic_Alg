@@ -626,6 +626,90 @@ class NeoFuzzyLayer(BaseLayer):
         return self.nonlinearity(o)
 
 
+class NeuroFuzzyLayer(BaseLayer):
+    def __init__(
+        self, num_rules: int, msf: tp.Callable[[tp.Any], np.ndarray], **kwargs
+    ):
+        self.size = num_rules
+        self.msf = msf
+        super().__init__(nonlinearity=Linear, **kwargs)
+
+    def build_weights_dict(self, input_shape):
+        """
+        Weights builder
+
+        Parameters
+        ----------
+
+        :input_shape: Input shape.
+        :type input_shape: tuple
+
+        Returns
+        -------
+
+        :return: Union object (number_of_weights, _output_shape)
+        :rtype: union
+        """
+        # Input shape is anything (all flattened)
+        input_size = np.prod(input_shape, dtype=int)
+        self.parser.add_weights(
+            "a",
+            (
+                1,
+                input_size,
+                self.size,
+            ),
+        )
+        self.parser.add_weights(
+            "c",
+            (
+                1,
+                input_size,
+                self.size,
+            ),
+        )
+        self.parser.add_weights(
+            "w",
+            (
+                1,
+                self.size,
+            ),
+        )
+        return self.parser.N, (self.size,)
+
+    def forward(self, inputs, param_vector):
+        """
+        Forward pass method
+
+        Parameters
+        ----------
+
+        :inputs: Input matrix.
+        :type inputs: np.ndarray
+
+        :param_vector: Vector of network's weights.
+        :type param_vector: np.ndarray
+
+        Returns
+        -------
+
+        :return: Result of fuzzy-consequence
+        :rtype: np.ndarray
+
+        """
+        a = self.parser.get(param_vector, "a")
+        c = self.parser.get(param_vector, "c")
+        w = self.parser.get(param_vector, "w")
+        if inputs.ndim > 2:
+            inputs = inputs.reshape((inputs.shape[0], np.prod(inputs.shape[1:])))
+        inputs = inputs[..., np.newaxis]
+        msfs = self.msf(inputs, c, a)
+        prod = np.prod(msfs, axis=1)
+        divider = np.sum(prod, axis=-1, keepdims=True)
+        f = np.sum(prod * w, axis=-1, keepdims=True)
+        return self.nonlinearity(f / divider)
+
+
 class GMDHLayer(BaseLayer):
     """
     Group Method of Data Handling Layer

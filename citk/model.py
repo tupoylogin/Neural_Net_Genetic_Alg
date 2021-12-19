@@ -15,6 +15,7 @@ from .layer import (
     FuzzyGMDHLayer,
     GMDHLayer,
     NeoFuzzyLayer,
+    NeuroFuzzyLayer,
     WeightsParser,
     Fuzzify,
 )
@@ -297,6 +298,8 @@ class GMDH(object):
             return [GMDHLayer(poli_type=self._poli_type)]
         elif self._method_type == "neo_fuzzy":
             return [NeoFuzzyLayer(num_rules=self._num_rules, msf=BellMembership)]
+        elif self._method_type == "neuro_fuzzy":
+            return [NeuroFuzzyLayer(num_rules=self._num_rules, msf=BellMembership)]
         elif self._method_type == "fuzzy":
             return [
                 FuzzyGMDHLayer(
@@ -443,6 +446,8 @@ class GMDH(object):
         if self._method_type == "fuzzy":
             self.fit_simplex((train_sample[0][:, pair], train_sample[1]))
         elif self._method_type == "neo_fuzzy":
+            self.fit_sgd((train_sample[0][:, pair], train_sample[1]))
+        elif self._method_type == "neuro_fuzzy":
             self.fit_sgd((train_sample[0][:, pair], train_sample[1]))
         else:
             self.fit_lstsq((train_sample[0][:, pair], train_sample[1]))
