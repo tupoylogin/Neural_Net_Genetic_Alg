@@ -427,8 +427,9 @@ class GMDH(object):
 
     def fit_sgd(self, train_sample: tp.Tuple[np.ndarray]):
         X_train, y_train = train_sample
-        W_vect = np.random.default_rng(42).normal(size=self.W_vect.shape)
-        optimiser = SGDOptimizer(alpha=0.01, eta=1e-2)
+        SEED = int(datetime.utcnow().timestamp() * 1e5)
+        W_vect = np.random.default_rng(SEED).normal(size=self.W_vect.shape)
+        optimiser = SGDOptimizer(alpha=0.001, eta=1e-2)
         for iter in range(self._num_sgd_rounds):
             to_stop, inst, _ = optimiser.apply(self.loss, X_train, y_train, W_vect)
             self.W_vect = inst
